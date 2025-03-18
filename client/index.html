@@ -6,6 +6,7 @@
     <title>Remote Control Dashboard</title>
     <link rel="stylesheet" href="styles.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <script src="connection_check.js"></script>
 </head>
 <body>
     <div class="login-screen" id="login-screen">
@@ -14,6 +15,8 @@
             <div class="form-group">
                 <label for="server-address">Adresa serverului:</label>
                 <input type="text" id="server-address" placeholder="ex: http://192.168.1.100:8080">
+                <button id="check-connection" class="secondary-btn">Verifică conexiunea</button>
+                <div id="connection-status" class="status-message"></div>
             </div>
             <div class="form-group">
                 <label for="password">Parolă:</label>
@@ -21,13 +24,19 @@
             </div>
             <button id="login-btn" class="primary-btn">Conectare</button>
             <p id="login-message" class="error-message"></p>
+            <div class="help-text">
+                <p><i class="fas fa-info-circle"></i> Asigurați-vă că adresa include protocolul și portul (exemplu: http://192.168.1.100:8080)</p>
+            </div>
         </div>
     </div>
 
     <div class="dashboard hidden" id="dashboard">
         <header>
             <h1>Control laptop de la distanță</h1>
-            <button id="logout-btn" class="danger-btn"><i class="fas fa-sign-out-alt"></i> Deconectare</button>
+            <div class="connection-info">
+                <span id="connection-info">Conectat la: <span id="server-host">...</span></span>
+                <button id="logout-btn" class="danger-btn"><i class="fas fa-sign-out-alt"></i> Deconectare</button>
+            </div>
         </header>
 
         <div class="dashboard-container">
@@ -46,7 +55,7 @@
                     <button class="action-btn" data-command="df -h"><i class="fas fa-hdd"></i> Spațiu disc</button>
                     <button class="action-btn" data-command="free -h"><i class="fas fa-memory"></i> Memorie</button>
                     <button class="action-btn" data-command="ps aux | head -10"><i class="fas fa-tasks"></i> Procese</button>
-                    <button class="action-btn" data-command="ifconfig"><i class="fas fa-network-wired"></i> Rețea</button>
+                    <button class="action-btn" data-command="ifconfig || ip a"><i class="fas fa-network-wired"></i> Rețea</button>
                     <button class="action-btn" data-command="cat /etc/os-release"><i class="fas fa-desktop"></i> Versiune OS</button>
                 </div>
 
@@ -92,5 +101,28 @@
     </div>
 
     <script src="script.js"></script>
+    <script>
+        document.getElementById('check-connection').addEventListener('click', async function() {
+            const serverAddress = document.getElementById('server-address').value.trim();
+            
+            if (!serverAddress) {
+                ConnectionCheck.displayConnectionCheck({
+                    valid: false,
+                    message: 'Introduceți adresa serverului'
+                }, 'connection-status');
+                return;
+            }
+            
+            const statusElement = document.getElementById('connection-status');
+            statusElement.innerHTML = '<span style="color: #3498db;">Se verifică conexiunea...</span>';
+            
+            const result = await ConnectionCheck.checkConnection(serverAddress);
+            ConnectionCheck.displayConnectionCheck(result, 'connection-status');
+            
+            if (result.valid) {
+                document.getElementById('login-btn').disabled = false;
+            }
+        });
+    </script>
 </body>
 </html> 

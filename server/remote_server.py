@@ -7,30 +7,53 @@ import threading
 import base64
 import json
 import sys
+import importlib.util
+
+# Verifică dacă un pachet este instalat
+def is_package_installed(package_name):
+    return importlib.util.find_spec(package_name) is not None
+
+# Verifică și instalează dependențele necesare
+def install_dependencies():
+    required_packages = {
+        'flask': 'flask',
+        'flask_cors': 'flask-cors',
+        'pyautogui': 'pyautogui',
+        'numpy': 'numpy',
+        'cv2': 'opencv-python'
+    }
+    
+    packages_to_install = []
+    
+    for module_name, pip_package in required_packages.items():
+        if not is_package_installed(module_name):
+            packages_to_install.append(pip_package)
+    
+    if packages_to_install:
+        print(f"Instalare dependențe lipsă: {', '.join(packages_to_install)}")
+        try:
+            subprocess.check_call([sys.executable, "-m", "pip", "install"] + packages_to_install)
+            print("Dependențele au fost instalate. Repornește scriptul.")
+            sys.exit(1)
+        except subprocess.CalledProcessError:
+            print("Eroare la instalarea pachetelor. Încearcă să le instalezi manual.")
+            sys.exit(1)
+    else:
+        print("Toate dependențele sunt deja instalate.")
+
+# Instalează dependențele la prima rulare
+install_dependencies()
+
+# Acum importăm pachetele după ce ne-am asigurat că sunt instalate
 import pyautogui
 from flask import Flask, request, jsonify, Response, render_template
 from flask_cors import CORS
 import numpy as np
 import cv2
 
-# Verifică și instalează dependențele necesare
-def install_dependencies():
-    try:
-        import flask
-        import flask_cors
-        import pyautogui
-        import numpy
-        import cv2
-    except ImportError:
-        subprocess.call([sys.executable, "-m", "pip", "install", "flask", "flask-cors", "pyautogui", "numpy", "opencv-python"])
-        print("Dependențele au fost instalate. Repornește scriptul.")
-        sys.exit(1)
-
-# Instalează dependențele la prima rulare
-install_dependencies()
-
 app = Flask(__name__)
-CORS(app)  # Permite cereri cross-origin
+# Configurăm CORS pentru a permite cereri de la orice origine
+CORS(app, resources={r"/*": {"origins": "*"}})
 
 # Configurația serverului
 SERVER_HOST = '0.0.0.0'  # Ascultă pe toate interfețele de rețea
@@ -84,6 +107,9 @@ def index():
                     } else {
                         document.getElementById('message').textContent = 'Parolă incorectă';
                     }
+                })
+                .catch(error => {
+                    document.getElementById('message').textContent = 'Eroare de conexiune: ' + error.message;
                 });
             }
         </script>
@@ -93,8 +119,16 @@ def index():
     return html
 
 # Rută pentru autentificare
-@app.route('/auth', methods=['POST'])
+@app.route('/auth', methods=['POST', 'OPTIONS'])
 def auth():
+    if request.method == 'OPTIONS':
+        # Răspundem la cereri preflight OPTIONS
+        response = jsonify({'status': 'success'})
+        response.headers.add('Access-Control-Allow-Origin', '*')
+        response.headers.add('Access-Control-Allow-Headers', 'Content-Type')
+        response.headers.add('Access-Control-Allow-Methods', 'POST')
+        return response
+        
     data = request.json
     if data and data.get('password') == PASSWORD:
         return jsonify({"success": True})
@@ -173,6 +207,9 @@ def dashboard():
                         <p><strong>Sistem de operare:</strong> ${data.os}</p>
                         <p><strong>Utilizator:</strong> ${data.username}</p>
                     `;
+                })
+                .catch(error => {
+                    console.error("Eroare la încărcarea informațiilor de sistem:", error);
                 });
             
             // Funcția pentru reîmprospătarea ecranului
@@ -207,6 +244,11 @@ def dashboard():
                     const terminal = document.getElementById('terminal-output');
                     terminal.innerHTML += `<p>> ${command}</p><pre>${data.output}</pre>`;
                     terminal.scrollTop = terminal.scrollHeight;
+                })
+                .catch(error => {
+                    const terminal = document.getElementById('terminal-output');
+                    terminal.innerHTML += `<p>> ${command}</p><pre>Eroare: ${error.message}</pre>`;
+                    terminal.scrollTop = terminal.scrollHeight;
                 });
             }
             
@@ -228,13 +270,27 @@ def dashboard():
     return html
 
 # API pentru informațiile de sistem
-@app.route('/api/system-info')
+@app.route('/api/system-info', methods=['GET', 'OPTIONS'])
 def api_system_info():
+    if request.method == 'OPTIONS':
+        # Răspundem la cereri preflight OPTIONS
+        response = jsonify({'status': 'success'})
+        response.headers.add('Access-Control-Allow-Origin', '*')
+        response.headers.add('Access-Control-Allow-Methods', 'GET')
+        return response
+    
     return jsonify(system_info)
 
 # API pentru captură de ecran
-@app.route('/api/screenshot')
+@app.route('/api/screenshot', methods=['GET', 'OPTIONS'])
 def api_screenshot():
+    if request.method == 'OPTIONS':
+        # Răspundem la cereri preflight OPTIONS
+        response = jsonify({'status': 'success'})
+        response.headers.add('Access-Control-Allow-Origin', '*')
+        response.headers.add('Access-Control-Allow-Methods', 'GET')
+        return response
+    
     try:
         # Facem o captură de ecran
         screenshot = pyautogui.screenshot()
@@ -245,13 +301,23 @@ def api_screenshot():
         _, img_encoded = cv2.imencode('.jpg', img_np, [cv2.IMWRITE_JPEG_QUALITY, 70])
         
         # Returnăm imaginea ca răspuns
-        return Response(img_encoded.tobytes(), mimetype='image/jpeg')
+        response = Response(img_encoded.tobytes(), mimetype='image/jpeg')
+        response.headers.add('Access-Control-Allow-Origin', '*')
+        return response
     except Exception as e:
         return jsonify({"error": str(e)})
 
 # API pentru executare comenzi
-@app.route('/api/execute', methods=['POST'])
+@app.route('/api/execute', methods=['POST', 'OPTIONS'])
 def api_execute():
+    if request.method == 'OPTIONS':
+        # Răspundem la cereri preflight OPTIONS
+        response = jsonify({'status': 'success'})
+        response.headers.add('Access-Control-Allow-Origin', '*')
+        response.headers.add('Access-Control-Allow-Headers', 'Content-Type')
+        response.headers.add('Access-Control-Allow-Methods', 'POST')
+        return response
+    
     data = request.json
     command = data.get('command', '')
     
