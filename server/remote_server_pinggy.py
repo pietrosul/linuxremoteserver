@@ -200,6 +200,51 @@ def api_system_info():
     
     return jsonify(system_info)
 
+# Variabilă globală pentru a ține evidența adreselor IP care au început stream
+active_streams = {}
+
+# API pentru a începe un stream
+@app.route('/api/start-stream', methods=['POST', 'OPTIONS'])
+def start_stream():
+    if request.method == 'OPTIONS':
+        # Răspundem la cereri preflight OPTIONS
+        response = jsonify({'status': 'success'})
+        response.headers.add('Access-Control-Allow-Origin', '*')
+        response.headers.add('Access-Control-Allow-Headers', 'Content-Type')
+        response.headers.add('Access-Control-Allow-Methods', 'POST')
+        return response
+    
+    client_ip = request.remote_addr
+    
+    # Dacă acest IP nu a început deja un stream, înregistrăm-l
+    if client_ip not in active_streams:
+        active_streams[client_ip] = {'start_time': time.time()}
+        print(f"\n[INFO] Stream live început de la IP: {client_ip}")
+    
+    return jsonify({"success": True})
+
+# API pentru a opri un stream
+@app.route('/api/stop-stream', methods=['POST', 'OPTIONS'])
+def stop_stream():
+    if request.method == 'OPTIONS':
+        # Răspundem la cereri preflight OPTIONS
+        response = jsonify({'status': 'success'})
+        response.headers.add('Access-Control-Allow-Origin', '*')
+        response.headers.add('Access-Control-Allow-Headers', 'Content-Type')
+        response.headers.add('Access-Control-Allow-Methods', 'POST')
+        return response
+    
+    client_ip = request.remote_addr
+    
+    # Dacă acest IP avea un stream activ, îl oprim și afișăm durata
+    if client_ip in active_streams:
+        start_time = active_streams[client_ip]['start_time']
+        duration = time.time() - start_time
+        print(f"\n[INFO] Stream live oprit de la IP: {client_ip} (durata: {duration:.2f} secunde)")
+        del active_streams[client_ip]
+    
+    return jsonify({"success": True})
+
 # API pentru captură de ecran
 @app.route('/api/screenshot', methods=['GET', 'OPTIONS'])
 def api_screenshot():
@@ -211,7 +256,10 @@ def api_screenshot():
         return response
     
     try:
-        # Facem o captură de ecran
+        # Înregistrăm doar prima cerere de la o adresă IP, nu fiecare captură
+        client_ip = request.remote_addr
+        
+        # Facem o captură de ecran - fără mesaje în consolă
         screenshot = pyautogui.screenshot()
         
         # Convertim imaginea în format jpg

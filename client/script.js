@@ -513,7 +513,7 @@ function refreshScreen() {
 }
 
 // Funcție pentru pornirea stream-ului de capturi de ecran - îmbunătățită
-function startScreenStream() {
+async function startScreenStream() {
     // Verificăm dacă stream-ul este deja activ
     if (isStreamActive) return;
     
@@ -523,6 +523,19 @@ function startScreenStream() {
     // Actualizăm UI-ul
     elements.startStreamBtn.classList.add('hidden');
     elements.stopStreamBtn.classList.remove('hidden');
+    
+    // Notificăm serverul că începem stream-ul
+    try {
+        await fetch(`${serverAddress}/api/start-stream`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' }
+        });
+        
+        // Afișăm un mesaj în terminal
+        appendToTerminal("Stream live pornit", 'success');
+    } catch (error) {
+        console.log("Eroare la notificare server start stream:", error);
+    }
     
     // Încărcăm prima captură
     refreshScreen();
@@ -620,7 +633,7 @@ function addStreamControls() {
 }
 
 // Funcție pentru oprirea stream-ului de capturi de ecran - îmbunătățită
-function stopScreenStream() {
+async function stopScreenStream() {
     // Verificăm dacă stream-ul este activ
     if (!isStreamActive) return;
     
@@ -633,6 +646,19 @@ function stopScreenStream() {
     // Actualizăm UI-ul
     elements.stopStreamBtn.classList.add('hidden');
     elements.startStreamBtn.classList.remove('hidden');
+    
+    // Notificăm serverul că oprim stream-ul
+    try {
+        await fetch(`${serverAddress}/api/stop-stream`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' }
+        });
+        
+        // Afișăm un mesaj în terminal
+        appendToTerminal("Stream live oprit", 'info');
+    } catch (error) {
+        console.log("Eroare la notificare server stop stream:", error);
+    }
     
     // Eliminăm controalele de stream
     const streamControls = document.getElementById('stream-controls');
