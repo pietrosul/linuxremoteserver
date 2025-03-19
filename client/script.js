@@ -9,7 +9,7 @@ const CONFIG = {
     RETRY_ATTEMPTS: 3,    // Număr de încercări pentru request-uri eșuate
     STREAM_INTERVAL: 1000, // Intervalul de reîmprospătare a stream-ului (ms)
     PRELOAD_IMAGES: true,  // Preîncărcarea imaginilor pentru stream fluid
-    MINIMUM_FRAME_DELAY: 200 // Delay minim între frame-uri (ms)
+    MINIMUM_FRAME_DELAY: 500 // Delay minim între frame-uri (ms) - crescut pentru a reduce lag-ul
 };
 
 // Variable pentru setări utilizator

