@@ -10,6 +10,12 @@ const CONFIG = {
     STREAM_INTERVAL: 1000 // Intervalul de reîmprospătare a stream-ului (ms)
 };
 
+// Variable pentru setări utilizator
+const userSettings = {
+    rememberServer: true,
+    autoReconnect: false
+};
+
 // Elemente DOM pentru acces rapid
 const elements = {
     loginScreen: document.getElementById('login-screen'),
@@ -33,7 +39,7 @@ const elements = {
     connectionStatus: document.getElementById('connection-status')
 };
 
-// Inițializare după încărcarea paginii
+// La inițializare, verifică și setările salvate
 document.addEventListener('DOMContentLoaded', () => {
     // Verificare dacă există o sesiune salvată
     const savedServer = localStorage.getItem('serverAddress');
@@ -41,17 +47,130 @@ document.addEventListener('DOMContentLoaded', () => {
         elements.serverAddressInput.value = savedServer;
     }
     
+    // Verifică setările salvate
+    const savedSettings = localStorage.getItem('userSettings');
+    if (savedSettings) {
+        try {
+            const parsedSettings = JSON.parse(savedSettings);
+            userSettings.rememberServer = parsedSettings.rememberServer !== undefined ? 
+                parsedSettings.rememberServer : true;
+            userSettings.autoReconnect = parsedSettings.autoReconnect !== undefined ? 
+                parsedSettings.autoReconnect : false;
+                
+            // Actualizează UI-ul cu setările salvate
+            document.getElementById('remember-server').checked = userSettings.rememberServer;
+            document.getElementById('auto-reconnect').checked = userSettings.autoReconnect;
+        } catch (error) {
+            console.error('Eroare la parsarea setărilor salvate:', error);
+        }
+    }
+    
     // Dezactivare buton login până la verificarea conexiunii
     elements.loginBtn.disabled = true;
     
     // Adăugare event listeners
     setupEventListeners();
+    
+    // Adăugăm efectul de ripple la butoane
+    addRippleEffect();
+    
+    // Adaugă efect de scanare pentru imaginea ecranului
+    addScanEffect();
+    
+    // Inițializare event listener pentru câmpul de parolă - aplicăm blur când încep să scriu
+    if (elements.passwordInput) {
+        elements.passwordInput.addEventListener('input', handlePasswordInput);
+    }
 });
 
 // Configurare event listeners
 function setupEventListeners() {
+    // Event listener pentru opțiunea de memorare server
+    document.getElementById('remember-server').addEventListener('change', function() {
+        userSettings.rememberServer = this.checked;
+        saveUserSettings();
+    });
+    
+    // Event listener pentru opțiunea de auto-reconectare
+    document.getElementById('auto-reconnect').addEventListener('change', function() {
+        userSettings.autoReconnect = this.checked;
+        saveUserSettings();
+    });
+    
     // Event listener pentru butonul de verificare conexiune
-    elements.checkConnectionBtn.addEventListener('click', checkServerConnection);
+    elements.checkConnectionBtn.addEventListener('click', async function() {
+        const serverAddress = elements.serverAddressInput.value.trim();
+        
+        if (!serverAddress) {
+            ConnectionCheck.displayConnectionCheck({
+                valid: false,
+                message: 'Introduceți adresa serverului'
+            }, 'connection-status');
+            return;
+        }
+        
+        // Afișează starea de "verificare..."
+        const statusElement = document.getElementById('connection-status');
+        statusElement.innerHTML = '<span style="color: var(--primary);"><i class="fas fa-spinner fa-spin"></i> Se verifică conexiunea...</span>';
+        
+        // Verifică conexiunea
+        const result = await ConnectionCheck.checkConnection(serverAddress);
+        ConnectionCheck.displayConnectionCheck(result, 'connection-status');
+        
+        // Dacă conexiunea este validă, activează butonul de login
+        if (result.valid) {
+            document.getElementById('login-btn').disabled = false;
+        }
+    });
+    
+    // Event listener pentru toggle-ul parolei
+    const passwordField = document.getElementById('password');
+    const passwordToggle = document.querySelector('.password-toggle');
+
+    if (passwordToggle && passwordField) {
+        passwordToggle.addEventListener('click', function() {
+            // Dacă câmpul este gol, nu facem nimic
+            if (!passwordField.value) return;
+            
+            if (passwordField.classList.contains('password-blur')) {
+                // Arată parola (cu efect de fadeOut pentru blur)
+                passwordField.classList.add('password-toggle-fade-out');
+                
+                // Dăm timp tranzițiilor să se aplice
+                setTimeout(() => {
+                    passwordField.classList.remove('password-blur');
+                    passwordField.classList.add('password-clear');
+                }, 10);
+                
+                // Schimbă iconița
+                this.querySelector('i').classList.remove('fa-eye');
+                this.querySelector('i').classList.add('fa-eye-slash');
+                
+                // Eliminăm clasa de tranziție după ce s-a terminat animația
+                setTimeout(() => {
+                    passwordField.classList.remove('password-toggle-fade-out');
+                }, 350);
+            } else {
+                // Ascunde parola (cu efect de fadeIn pentru blur)
+                passwordField.classList.add('password-toggle-fade-in');
+                
+                // Dăm timp tranzițiilor să se aplice 
+                setTimeout(() => {
+                    passwordField.classList.remove('password-clear');
+                    passwordField.classList.add('password-blur');
+                }, 10);
+                
+                // Schimbă iconița
+                this.querySelector('i').classList.remove('fa-eye-slash');
+                this.querySelector('i').classList.add('fa-eye');
+                
+                // Eliminăm clasa de tranziție după ce s-a terminat animația
+                setTimeout(() => {
+                    passwordField.classList.remove('password-toggle-fade-in');
+                }, 350);
+            }
+        });
+    }
     
     // Event listener pentru modificarea adresei serverului
     elements.serverAddressInput.addEventListener('input', () => {
@@ -109,6 +228,11 @@ function setupEventListeners() {
     });
 }
 
+// Funcție pentru salvarea setărilor utilizatorului
+function saveUserSettings() {
+    localStorage.setItem('userSettings', JSON.stringify(userSettings));
+}
+
 // Funcție pentru verificarea conexiunii la server
 async function checkServerConnection() {
     const serverAddress = elements.serverAddressInput.value.trim();
@@ -118,20 +242,30 @@ async function checkServerConnection() {
             valid: false,
             message: 'Introduceți adresa serverului'
         }, 'connection-status');
-        return;
+        return { valid: false };
     }
     
     // Afișăm starea de "verificare..."
-    elements.connectionStatus.innerHTML = '<span style="color: #3498db;">Se verifică conexiunea...</span>';
+    elements.connectionStatus.innerHTML = '<span style="color: var(--primary);"><i class="fas fa-spinner fa-spin"></i> Se verifică conexiunea...</span>';
     
-    // Verifică conexiunea
-    const result = await ConnectionCheck.checkConnection(serverAddress);
-    ConnectionCheck.displayConnectionCheck(result, 'connection-status');
-    
-    // Dacă conexiunea este validă, activăm butonul de login
-    elements.loginBtn.disabled = !result.valid;
-    
-    return result;
+    try {
+        // Verifică conexiunea
+        const result = await ConnectionCheck.checkConnection(serverAddress);
+        ConnectionCheck.displayConnectionCheck(result, 'connection-status');
+        
+        // Dacă conexiunea este validă, activăm butonul de login
+        elements.loginBtn.disabled = !result.valid;
+        
+        return result;
+    } catch (error) {
+        // În caz de eroare, afișăm un mesaj și dezactivăm butonul
+        ConnectionCheck.displayConnectionCheck({
+            valid: false,
+            message: `Eroare la verificarea conexiunii: ${error.message}`
+        }, 'connection-status');
+        elements.loginBtn.disabled = true;
+        return { valid: false };
+    }
 }
 
 // Funcție care adaugă timeout la fetch
@@ -168,15 +302,17 @@ async function handleLogin() {
     
     try {
         // Afișăm un indicator de încărcare
-        elements.loginBtn.innerHTML = 'Se conectează...';
-        elements.loginBtn.disabled = true;
+        const loginBtn = elements.loginBtn;
+        const originalContent = loginBtn.innerHTML;
+        loginBtn.innerHTML = '<span class="button-content"><i class="fas fa-spinner fa-spin"></i> Se conectează...</span>';
+        loginBtn.disabled = true;
         
         // Verificăm conexiunea doar dacă nu există deja o verificare validă
         if (!elements.connectionStatus.textContent.includes('Conectat la server')) {
             const connectionResult = await checkServerConnection();
             if (!connectionResult.valid) {
-                elements.loginBtn.innerHTML = 'Conectare';
-                elements.loginBtn.disabled = false;
+                loginBtn.innerHTML = originalContent;
+                loginBtn.disabled = false;
                 return;
             }
         }
@@ -193,8 +329,10 @@ async function handleLogin() {
         const data = await response.json();
         
         if (data.success) {
-            // Salvăm adresa serverului în localStorage
-            localStorage.setItem('serverAddress', normalizedAddress);
+            // Salvăm adresa serverului în localStorage doar dacă opțiunea este activată
+            if (userSettings.rememberServer) {
+                localStorage.setItem('serverAddress', normalizedAddress);
+            }
             
             // Setăm adresa globală a serverului
             serverAddress = normalizedAddress;
@@ -202,9 +340,13 @@ async function handleLogin() {
             // Actualizăm informația despre server în dashboard
             updateServerInfo(normalizedAddress);
             
-            // Ascundem ecranul de login și afișăm dashboard-ul
-            elements.loginScreen.classList.add('hidden');
-            elements.dashboard.classList.remove('hidden');
+            // Ascundem ecranul de login și afișăm dashboard-ul cu animație
+            elements.loginScreen.style.animation = 'fadeOut 0.5s forwards';
+            setTimeout(() => {
+                elements.loginScreen.classList.add('hidden');
+                elements.dashboard.classList.remove('hidden');
+                elements.dashboard.style.animation = 'fadeIn 0.5s forwards';
+            }, 500);
             
             // Încărcăm informațiile inițiale
             loadSystemInfo();
@@ -215,6 +357,8 @@ async function handleLogin() {
             appendToTerminal("Pentru a vedea ecranul, apăsați pe butonul 'Reîmprospătare'", 'info');
         } else {
             showLoginError('Parolă incorectă');
+            loginBtn.innerHTML = originalContent;
+            loginBtn.disabled = false;
         }
     } catch (error) {
         // Gestionăm erori specifice
@@ -226,10 +370,15 @@ async function handleLogin() {
             showLoginError(`Eroare de conexiune: ${error.message}`);
         }
         console.error("Eroare login:", error);
-    } finally {
-        // Resetăm butonul de login
-        elements.loginBtn.innerHTML = 'Conectare';
-        elements.loginBtn.disabled = false;
+        
+        // Dacă opțiunea de auto-reconectare este activată, încercăm să ne reconectăm
+        if (userSettings.autoReconnect) {
+            showLoginError('Se încearcă reconectarea automată...');
+            setTimeout(handleLogin, 5000); // Încercăm din nou după 5 secunde
+        } else {
+            elements.loginBtn.innerHTML = '<span class="button-content"><i class="fas fa-sign-in-alt"></i> Conectare</span>';
+            elements.loginBtn.disabled = false;
+        }
     }
 }
 
@@ -286,10 +435,18 @@ async function loadSystemInfo() {
     }
 }
 
-// Funcție pentru reîmprospătarea ecranului
+// Adaugă clasa 'loaded' la imagine când se încarcă
+function markScreenAsLoaded() {
+    elements.screen.classList.add('loaded');
+}
+
+// Modificare la funcția refreshScreen() pentru a implementa animația
 function refreshScreen() {
     // Afișăm indicatorul de încărcare
     elements.loadingOverlay.classList.remove('hidden');
+    
+    // Eliminăm clasa 'loaded' de pe imagine
+    elements.screen.classList.remove('loaded');
     
     // Setăm sursa imaginii cu un timestamp pentru a evita cache-ul
     const timestamp = new Date().getTime();
@@ -298,6 +455,8 @@ function refreshScreen() {
     // Ascundem indicatorul de încărcare când imaginea s-a încărcat
     elements.screen.onload = () => {
         elements.loadingOverlay.classList.add('hidden');
+        // Adăugăm clasa 'loaded' la imagine
+        markScreenAsLoaded();
     };
     
     // Ascundem indicatorul de încărcare dacă apare o eroare
@@ -376,18 +535,23 @@ async function executeCommand(command) {
     }
 }
 
-// Funcție pentru adăugarea de conținut în terminal
+// Modificare la funcția appendToTerminal pentru a aplica efectul de typing la ultima comandă
 function appendToTerminal(text, type) {
     const element = document.createElement('div');
     
+    // Îndepărtăm clasa typing de la ultima comandă anterioară
+    const previousElements = document.querySelectorAll('#terminal-output div.typing');
+    previousElements.forEach(el => el.classList.remove('typing'));
+    
     if (type === 'command') {
-        element.innerHTML = `<p><span style="color: #3498db;">${text}</span></p>`;
+        element.innerHTML = `<p><span style="color: var(--primary);">${text}</span></p>`;
+        element.classList.add('typing'); // Adăugăm clasa typing pentru animație
     } else if (type === 'error') {
-        element.innerHTML = `<p><span style="color: #e74c3c;">${text}</span></p>`;
+        element.innerHTML = `<p><span style="color: var(--accent-soft);">${text}</span></p>`;
     } else if (type === 'info') {
-        element.innerHTML = `<p><span style="color: #f39c12;">${text}</span></p>`;
+        element.innerHTML = `<p><span style="color: #f59e0b;">${text}</span></p>`;
     } else if (type === 'success') {
-        element.innerHTML = `<p><span style="color: #2ecc71;">${text}</span></p>`;
+        element.innerHTML = `<p><span style="color: #10b981;">${text}</span></p>`;
     } else { // output
         element.innerHTML = `<pre>${text}</pre>`;
     }
@@ -396,4 +560,59 @@ function appendToTerminal(text, type) {
     
     // Scroll la sfârșitul terminalului
     elements.terminalOutput.scrollTop = elements.terminalOutput.scrollHeight;
+}
+
+// Adăugăm efect de ripple la butoane
+function addRippleEffect() {
+    const buttons = document.querySelectorAll('button');
+    
+    buttons.forEach(button => {
+        button.addEventListener('click', function(e) {
+            const rect = button.getBoundingClientRect();
+            const x = e.clientX - rect.left;
+            const y = e.clientY - rect.top;
+            
+            const ripple = document.createElement('span');
+            ripple.classList.add('ripple');
+            ripple.style.left = `${x}px`;
+            ripple.style.top = `${y}px`;
+            
+            button.appendChild(ripple);
+            
+            setTimeout(() => {
+                ripple.remove();
+            }, 600);
+        });
+    });
+}
+
+// Adaugă efect de scanare pentru ecran
+function addScanEffect() {
+    const screenContainer = document.querySelector('.screen-container');
+    if (screenContainer) {
+        screenContainer.addEventListener('mouseenter', function() {
+            this.classList.add('scan-active');
+        });
+        
+        screenContainer.addEventListener('mouseleave', function() {
+            this.classList.remove('scan-active');
+        });
+    }
+}
+
+// Funcție pentru gestionarea input-ului de parolă
+function handlePasswordInput() {
+    // Prima apăsare de tastă - aplicăm blur INSTANT fără niciun fade
+    if (this.value && !this.classList.contains('password-clear') && !this.classList.contains('password-blur')) {
+        this.classList.add('password-blur');
+    } else if (this.value && !this.classList.contains('password-clear')) {
+        // Dacă există deja text și nu este în modul clear, menținem blur-ul
+        this.classList.add('password-blur');
+    } else if (!this.value) {
+        // Dacă câmpul este gol, eliminăm orice stil
+        this.classList.remove('password-blur');
+        this.classList.remove('password-clear');
+        this.classList.remove('password-toggle-fade-in');
+        this.classList.remove('password-toggle-fade-out');
+    }
 } 

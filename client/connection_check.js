@@ -58,7 +58,12 @@ async function checkServerResponse(url) {
         clearTimeout(timeoutId);
         
         if (response.ok) {
-            return { valid: true, data: await response.json() };
+            const data = await response.json();
+            return { 
+                valid: true, 
+                data: data,
+                message: `Conectat la server ${data.hostname || ''}`
+            };
         } else {
             return {
                 valid: false,
@@ -109,19 +114,37 @@ async function checkConnection(serverUrl) {
     return await checkServerResponse(serverUrl);
 }
 
-// Funcție pentru a afișa rezultatul verificării într-un element HTML
-function displayConnectionCheck(result, elementId) {
-    const element = document.getElementById(elementId);
-    if (!element) return;
+// Funcție pentru afișarea stării verificării conexiunii
+function displayConnectionCheck(result, statusElementId) {
+    const statusElement = document.getElementById(statusElementId);
+    
+    // Dacă nu avem rezultat sau statusElement, nu afișăm nimic
+    if (!result || !statusElement) {
+        statusElement.innerHTML = '';
+        return;
+    }
+    
+    // Dacă nu avem mesaj, nu afișăm nimic
+    if (!result.message) {
+        statusElement.innerHTML = '';
+        return;
+    }
+    
+    let color, icon;
     
     if (result.valid) {
-        element.innerHTML = `<span style="color: #2ecc71;">✓ Conectat la server</span>`;
-        if (result.data) {
-            element.innerHTML += `<br><small>Server: ${result.data.hostname} (${result.data.ip})</small>`;
-        }
+        color = '#10b981'; // Verde
+        icon = 'check-circle';
     } else {
-        element.innerHTML = `<span style="color: #e74c3c;">✗ ${result.message}</span>`;
+        color = '#f72585'; // Roșu
+        icon = 'exclamation-circle';
     }
+    
+    statusElement.innerHTML = `
+        <span style="color: ${color};">
+            <i class="fas fa-${icon}"></i> ${result.message}
+        </span>
+    `;
 }
 
 // Export pentru a putea folosi acest modul în alte scripturi

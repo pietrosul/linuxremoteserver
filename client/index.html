@@ -3,39 +3,80 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Remote Control Dashboard</title>
+    <title>Remote Access Control</title>
     <link rel="stylesheet" href="styles.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="connection_check.js"></script>
 </head>
 <body>
     <div class="login-screen" id="login-screen">
         <div class="login-container">
-            <h1>Acces la distanță</h1>
+            <h1 class="accent-gradient-text">Remote Access</h1>
+            
             <div class="form-group">
-                <label for="server-address">Adresa serverului:</label>
-                <input type="text" id="server-address" placeholder="ex: http://192.168.1.100:8080">
-                <button id="check-connection" class="secondary-btn">Verifică conexiunea</button>
+                <label for="server-address">Adresa serverului</label>
+                <div class="input-wrapper">
+                    <i class="fas fa-network-wired input-icon"></i>
+                    <input type="text" id="server-address" placeholder="http://192.168.1.100:8080">
+                </div>
+                <button id="check-connection" class="secondary-btn ripple-button">
+                    <i class="fas fa-wifi"></i> Verifică conexiunea
+                </button>
                 <div id="connection-status" class="status-message"></div>
             </div>
+            
             <div class="form-group">
-                <label for="password">Parolă:</label>
-                <input type="password" id="password">
+                <label for="password">Parolă</label>
+                <div class="input-wrapper">
+                    <i class="fas fa-lock input-icon"></i>
+                    <input type="text" id="password" placeholder="Introdu parola de acces">
+                    <button type="button" class="password-toggle" aria-label="Arată/Ascunde parola">
+                        <i class="fas fa-eye"></i>
+                    </button>
+                </div>
+                <span class="security-note"><i class="fas fa-shield-alt"></i> Parola ta este protejată</span>
             </div>
-            <button id="login-btn" class="primary-btn">Conectare</button>
+            
+            <button id="login-btn" class="primary-btn ripple-button pulse-animation">
+                <span class="button-content pulse-animation">
+                    <i class="fas fa-sign-in-alt"></i> Conectare
+                </span>
+            </button>
+            
             <p id="login-message" class="error-message"></p>
+            
+            <div class="connection-options">
+                <div class="option-item">
+                    <input type="checkbox" id="remember-server" checked>
+                    <label for="remember-server">Memorează serverul</label>
+                </div>
+                <div class="option-item">
+                    <input type="checkbox" id="auto-reconnect">
+                    <label for="auto-reconnect">Auto-reconectare</label>
+                </div>
+            </div>
+            
             <div class="help-text">
-                <p><i class="fas fa-info-circle"></i> Asigurați-vă că adresa include protocolul și portul (exemplu: http://192.168.1.100:8080)</p>
+                <p><i class="fas fa-info-circle"></i> Asigură-te că incluzi protocolul și portul corect (ex: http://192.168.1.100:8080)</p>
+            </div>
+            
+            <div class="login-footer">
+                <div class="security-badge pulse-animation">
+                    <i class="fas fa-shield-alt"></i> Conexiune securizată
+                </div>
+                <div class="version-info">v1.2.0</div>
             </div>
         </div>
     </div>
 
     <div class="dashboard hidden" id="dashboard">
         <header>
-            <h1>Control laptop de la distanță</h1>
+            <h1 class="accent-gradient-text">Remote Access Control</h1>
             <div class="connection-info">
                 <span id="connection-info">Conectat la: <span id="server-host">...</span></span>
-                <button id="logout-btn" class="danger-btn"><i class="fas fa-sign-out-alt"></i> Deconectare</button>
+                <button id="logout-btn" class="danger-btn ripple-button">
+                    <i class="fas fa-sign-out-alt"></i> Deconectare
+                </button>
             </div>
         </header>
 
@@ -50,20 +91,40 @@
 
                 <div class="quick-actions panel">
                     <h2><i class="fas fa-bolt"></i> Acțiuni rapide</h2>
-                    <button class="action-btn" data-command="ls -la"><i class="fas fa-list"></i> Listare fișiere</button>
-                    <button class="action-btn" data-command="uptime"><i class="fas fa-clock"></i> Uptime</button>
-                    <button class="action-btn" data-command="df -h"><i class="fas fa-hdd"></i> Spațiu disc</button>
-                    <button class="action-btn" data-command="free -h"><i class="fas fa-memory"></i> Memorie</button>
-                    <button class="action-btn" data-command="ps aux | head -10"><i class="fas fa-tasks"></i> Procese</button>
-                    <button class="action-btn" data-command="ifconfig || ip a"><i class="fas fa-network-wired"></i> Rețea</button>
-                    <button class="action-btn" data-command="cat /etc/os-release"><i class="fas fa-desktop"></i> Versiune OS</button>
+                    <button class="action-btn ripple-button" data-command="ls -la">
+                        <i class="fas fa-list"></i> Listare fișiere
+                    </button>
+                    <button class="action-btn ripple-button" data-command="uptime">
+                        <i class="fas fa-clock"></i> Uptime
+                    </button>
+                    <button class="action-btn ripple-button" data-command="df -h">
+                        <i class="fas fa-hdd"></i> Spațiu disc
+                    </button>
+                    <button class="action-btn ripple-button" data-command="free -h">
+                        <i class="fas fa-memory"></i> Memorie
+                    </button>
+                    <button class="action-btn ripple-button" data-command="ps aux | head -10">
+                        <i class="fas fa-tasks"></i> Procese
+                    </button>
+                    <button class="action-btn ripple-button" data-command="ifconfig || ip a">
+                        <i class="fas fa-network-wired"></i> Rețea
+                    </button>
+                    <button class="action-btn ripple-button" data-command="cat /etc/os-release">
+                        <i class="fas fa-desktop"></i> Versiune OS
+                    </button>
                 </div>
 
                 <div class="system-control panel">
                     <h2><i class="fas fa-power-off"></i> Control sistem</h2>
-                    <button class="danger-btn action-btn" data-command="systemctl poweroff"><i class="fas fa-power-off"></i> Shutdown</button>
-                    <button class="warning-btn action-btn" data-command="systemctl reboot"><i class="fas fa-sync"></i> Restart</button>
-                    <button class="warning-btn action-btn" data-command="systemctl suspend"><i class="fas fa-moon"></i> Suspendare</button>
+                    <button class="action-btn danger-btn ripple-button" data-command="systemctl poweroff">
+                        <i class="fas fa-power-off"></i> Shutdown
+                    </button>
+                    <button class="action-btn warning-btn ripple-button" data-command="systemctl reboot">
+                        <i class="fas fa-sync"></i> Restart
+                    </button>
+                    <button class="action-btn warning-btn ripple-button" data-command="systemctl suspend">
+                        <i class="fas fa-moon"></i> Suspendare
+                    </button>
                 </div>
             </div>
 
@@ -72,13 +133,20 @@
                     <div class="screen-controls">
                         <h2><i class="fas fa-desktop"></i> Ecran</h2>
                         <div class="screen-buttons">
-                            <button id="refresh-screen" class="primary-btn"><i class="fas fa-sync"></i> Reîmprospătare</button>
-                            <button id="start-stream" class="success-btn"><i class="fas fa-play"></i> Stream Live</button>
-                            <button id="stop-stream" class="warning-btn hidden"><i class="fas fa-stop"></i> Oprire stream</button>
+                            <button id="refresh-screen" class="primary-btn ripple-button">
+                                <i class="fas fa-sync"></i> Reîmprospătare
+                            </button>
+                            <button id="start-stream" class="success-btn ripple-button gradient-button">
+                                <i class="fas fa-play"></i> Stream Live
+                            </button>
+                            <button id="stop-stream" class="warning-btn ripple-button hidden">
+                                <i class="fas fa-stop"></i> Oprire stream
+                            </button>
                         </div>
                     </div>
-                    <div class="screen-container">
+                    <div class="screen-container" id="screen-container">
                         <img id="screen" src="" alt="Ecran la distanță">
+                        <div class="scan-line"></div>
                         <div id="loading-overlay" class="hidden">
                             <div class="spinner"></div>
                             <p>Se încarcă...</p>
@@ -93,15 +161,24 @@
                     </div>
                     <div class="terminal-input">
                         <input type="text" id="command-input" placeholder="Introdu o comandă...">
-                        <button id="execute-command" class="primary-btn"><i class="fas fa-terminal"></i> Execută</button>
+                        <button id="execute-command" class="primary-btn ripple-button">
+                            <i class="fas fa-terminal"></i> Execută
+                        </button>
                     </div>
                 </div>
             </div>
         </div>
+
+        <footer>
+            <div class="footer-content">
+                <p>Remote Access Tool &copy; 2023 | <span class="accent-gradient-text">Utilizare etică pe sisteme proprii</span></p>
+            </div>
+        </footer>
     </div>
 
     <script src="script.js"></script>
     <script>
+        // Script pentru verificarea conexiunii
         document.getElementById('check-connection').addEventListener('click', async function() {
             const serverAddress = document.getElementById('server-address').value.trim();
             
@@ -113,12 +190,15 @@
                 return;
             }
             
+            // Afișează starea de "verificare..."
             const statusElement = document.getElementById('connection-status');
-            statusElement.innerHTML = '<span style="color: #3498db;">Se verifică conexiunea...</span>';
+            statusElement.innerHTML = '<span style="color: var(--primary);"><i class="fas fa-spinner fa-spin"></i> Se verifică conexiunea...</span>';
             
+            // Verifică conexiunea
             const result = await ConnectionCheck.checkConnection(serverAddress);
             ConnectionCheck.displayConnectionCheck(result, 'connection-status');
             
+            // Dacă conexiunea este validă, activează butonul de login
             if (result.valid) {
                 document.getElementById('login-btn').disabled = false;
             }

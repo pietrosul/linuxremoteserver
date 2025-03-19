@@ -1,160 +1,525 @@
+/* Importare fonturi wide moderne */
+@import url('https://fonts.googleapis.com/css2?family=Georama:wght@300;400;500;600;700;800;900&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700;800;900&display=swap');
+
 /* Resetare și stiluri generale */
 * {
     margin: 0;
     padding: 0;
     box-sizing: border-box;
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    font-family: 'Georama', 'Archivo', sans-serif;
+}
+
+:root {
+    --primary: #4361ee;
+    --primary-dark: #3a56d4;
+    --primary-light: #5e74f5;
+    --secondary: #3de1f7;
+    --accent: #f72585;
+    --accent-soft: #ff5e98;
+    --text-primary: #1e1e2e;
+    --text-secondary: #555565;
+    --bg-primary: #ffffff;
+    --bg-secondary: #f5f7fa;
+    --bg-card: #ffffff;
+    --border-color: #e0e6ed;
+    --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.05);
+    --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.08);
+    --radius-sm: 8px;
+    --radius-md: 12px;
+    --radius-lg: 20px;
+    --transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+    --radius-btn: 10px;
+    --shadow-btn: 0 2px 5px rgba(0, 0, 0, 0.1);
+    --shadow-btn-hover: 0 5px 15px rgba(0, 0, 0, 0.1);
+    --font-weight-heading: 800;
+    --letter-spacing-heading: -0.03em;
+    --success-dark: #059669;
+    --success-light: #34d399;
+    --warning-dark: #d97706;
+    --warning-light: #fbbf24;
 }
 
 body {
-    background-color: #f5f7fa;
-    color: #333;
+    background-color: var(--bg-secondary);
+    color: var(--text-primary);
     line-height: 1.6;
+    font-weight: 400;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
 }
 
 .hidden {
     display: none !important;
 }
 
-/* Stiluri pentru ecranul de login */
+/* Stiluri pentru headings */
+h1, h2, h3, h4, h5, h6 {
+    font-weight: var(--font-weight-heading);
+    letter-spacing: var(--letter-spacing-heading);
+    font-family: 'Georama', sans-serif;
+}
+
+h1 {
+    font-size: 2.5rem;
+    line-height: 1.2;
+    text-transform: uppercase;
+}
+
+h2 {
+    font-size: 1.5rem;
+    line-height: 1.3;
+}
+
+/* Stiluri pentru ecranul de login - efecte îmbunătățite */
 .login-screen {
     height: 100vh;
     display: flex;
     justify-content: center;
     align-items: center;
-    background: linear-gradient(135deg, #4b6cb7, #182848);
+    background: linear-gradient(135deg, #f5f7fa 0%, #e4e8f0 50%, #ecf2ff 100%);
+    position: relative;
+    overflow: hidden;
+    animation: fadeIn 0.8s ease-out forwards;
+}
+
+.login-screen::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: radial-gradient(circle, rgba(67, 97, 238, 0.03) 0%, rgba(67, 97, 238, 0.02) 30%, transparent 70%);
+    z-index: 0;
+    animation: pulse 20s infinite linear;
+}
+
+.login-screen::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: url("data:image/svg+xml,%3Csvg width='100' height='100' viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M11 18c3.866 0 7-3.134 7-7s-3.134-7-7-7-7 3.134-7 7 3.134 7 7 7zm48 25c3.866 0 7-3.134 7-7s-3.134-7-7-7-7 3.134-7 7 3.134 7 7 7zm-43-7c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zm63 31c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zM34 90c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zm56-76c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zM12 86c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm28-65c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm23-11c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm-6 60c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm29 22c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zM32 63c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm57-13c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm-9-21c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM60 91c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM35 41c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM12 60c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2z' fill='%234361ee' fill-opacity='0.02' fill-rule='evenodd'/%3E%3C/svg%3E");
+    z-index: 0;
+}
+
+@keyframes pulse {
+    0% {
+        transform: rotate(0deg);
+    }
+    100% {
+        transform: rotate(360deg);
+    }
 }
 
 .login-container {
-    background-color: white;
-    border-radius: 8px;
-    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
-    padding: 2rem;
+    background-color: var(--bg-card);
+    border-radius: var(--radius-lg);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.12), 
+                0 4px 8px rgba(0, 0, 0, 0.06),
+                0 0 0 1px rgba(67, 97, 238, 0.1);
+    padding: 3rem;
     width: 90%;
-    max-width: 400px;
+    max-width: 480px;
+    position: relative;
+    z-index: 1;
+    transform: translateY(0);
+    transition: transform 0.5s cubic-bezier(0.34, 1.56, 0.64, 1), 
+                box-shadow 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+    backdrop-filter: blur(5px);
+    border: 1px solid rgba(255, 255, 255, 0.8);
+}
+
+.login-container:hover {
+    transform: none;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.12), 
+                0 4px 8px rgba(0, 0, 0, 0.06),
+                0 0 0 1px rgba(67, 97, 238, 0.1);
 }
 
 .login-container h1 {
-    color: #333;
+    color: var(--text-primary);
     text-align: center;
-    margin-bottom: 1.5rem;
+    margin-bottom: 2.5rem;
+    font-size: 2.5rem;
+    background: linear-gradient(135deg, var(--primary), var(--secondary));
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    text-transform: uppercase;
+    letter-spacing: 0.01em;
+    font-weight: 800;
+    position: relative;
+    display: inline-block;
+    width: 100%;
+}
+
+.login-container h1::after {
+    content: '';
+    position: absolute;
+    width: 60px;
+    height: 4px;
+    background: linear-gradient(135deg, var(--primary), var(--secondary));
+    bottom: -12px;
+    left: 50%;
+    transform: translateX(-50%);
+    border-radius: 2px;
 }
 
 .form-group {
-    margin-bottom: 1rem;
+    margin-bottom: 1.8rem;
+    position: relative;
+    animation: none;
 }
 
 .form-group label {
     display: block;
-    margin-bottom: 0.5rem;
-    color: #555;
+    margin-bottom: 0.75rem;
+    color: var(--text-secondary);
+    font-weight: 600;
+    font-size: 0.85rem;
+    text-transform: uppercase;
+    letter-spacing: 0.07em;
+    position: relative;
+    padding-left: 12px;
+}
+
+.form-group label::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 4px;
+    height: 4px;
+    background-color: var(--primary);
+    border-radius: 50%;
 }
 
 .form-group input {
     width: 100%;
-    padding: 0.75rem;
-    border: 1px solid #ddd;
-    border-radius: 4px;
+    height: 52px;
+    padding: 0 1.2rem;
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-btn);
     font-size: 1rem;
+    background-color: var(--bg-primary);
+    color: var(--text-primary);
+    transition: border-color 0.3s ease;
+    box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.05);
+}
+
+.form-group input:focus {
+    outline: none;
+    border-color: var(--primary-light);
+    box-shadow: 0 0 0 4px rgba(94, 116, 245, 0.2);
+    transform: none;
 }
 
 .error-message {
-    color: #e74c3c;
+    color: var(--accent);
     margin-top: 1rem;
     text-align: center;
     min-height: 20px;
+    font-weight: 500;
+}
+
+/* Stiluri pentru status-message - animație fade-in simplă */
+.status-message:empty {
+    display: none;
 }
 
 .status-message {
-    margin-top: 0.5rem;
+    margin-top: 0.85rem;
     min-height: 40px;
     font-size: 0.9rem;
+    padding: 0.5rem 0.75rem;
+    border-radius: var(--radius-sm);
+    background-color: rgba(67, 97, 238, 0.05);
+    border-left: 3px solid var(--primary);
+    transition: opacity 0.3s ease;
+    animation: fadeIn 0.3s ease-out forwards;
 }
 
 .help-text {
-    margin-top: 1rem;
+    margin-top: 1.8rem;
     font-size: 0.85rem;
-    color: #7f8c8d;
+    color: var(--text-secondary);
     text-align: center;
+    line-height: 1.6;
+    padding: 1rem;
+    background-color: rgba(244, 247, 250, 0.7);
+    border-radius: var(--radius-sm);
 }
 
 .help-text i {
-    margin-right: 0.3rem;
-    color: #3498db;
+    margin-right: 0.35rem;
+    color: var(--primary);
 }
 
 /* Stiluri pentru verificare conexiune */
 #check-connection {
-    margin-top: 0.5rem;
+    margin-top: 0.85rem;
     width: 100%;
-    background-color: #ecf0f1;
-    color: #2c3e50;
-    border: 1px solid #bdc3c7;
+    background-color: var(--bg-secondary);
+    color: var(--text-primary);
+    border: 1px solid var(--border-color);
+    padding: 0.8rem 1rem;
+    height: 48px;
+    font-weight: 500;
+    font-size: 0.95rem;
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+    z-index: 1;
+}
+
+#check-connection::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(67, 97, 238, 0.1), transparent);
+    transition: all 0.5s ease;
+    z-index: -1;
+}
+
+#check-connection:hover::before {
+    left: 100%;
 }
 
 #check-connection:hover {
-    background-color: #d6dbdf;
+    background-color: rgba(67, 97, 238, 0.05);
+    border-color: var(--primary);
+    transform: translateY(-2px);
 }
 
 /* Stiluri pentru butoane */
 button {
     cursor: pointer;
-    padding: 0.75rem 1rem;
+    padding: 0.85rem 1.2rem;
     border: none;
-    border-radius: 4px;
-    font-weight: 500;
-    transition: all 0.2s ease;
+    border-radius: var(--radius-btn);
+    font-weight: 600;
+    font-size: 0.95rem;
+    transition: all 0.35s cubic-bezier(0.17, 0.67, 0.83, 0.67);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    letter-spacing: 0.01em;
+    box-shadow: var(--shadow-btn);
+    position: relative;
+    overflow: hidden;
+}
+
+button:hover {
+    box-shadow: var(--shadow-btn);
+    transform: none;
+}
+
+button:hover i {
+    transform: none;
 }
 
 .primary-btn {
-    background-color: #3498db;
+    background: linear-gradient(135deg, #4361ee, #3a56d4, #4361ee);
+    background-size: 200% 200%;
+    animation: gradient-move 4s ease infinite;
     color: white;
     width: 100%;
+    height: 54px;
+    box-shadow: 0 3px 10px rgba(67, 97, 238, 0.2);
+    position: relative;
+    z-index: 1;
+    border: none;
+    font-size: 1rem;
+    font-weight: 600;
+    letter-spacing: 0.03em;
+    overflow: hidden;
+}
+
+.primary-btn::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(135deg, var(--primary-dark), var(--primary));
+    opacity: 0;
+    transition: opacity 0.5s ease;
+    z-index: -1;
+}
+
+.primary-btn:hover::before {
+    opacity: 1;
+}
+
+.primary-btn::after {
+    content: '';
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: radial-gradient(circle, rgba(255, 255, 255, 0.2) 0%, transparent 60%);
+    opacity: 0;
+    transform: scale(0.5);
+    transition: all 0.8s cubic-bezier(0.19, 1, 0.22, 1);
+    z-index: -1;
+}
+
+.primary-btn:hover::after {
+    opacity: 1;
+    transform: scale(1);
 }
 
 .primary-btn:hover {
-    background-color: #2980b9;
+    background-position: 0 0;
+    box-shadow: 0 3px 10px rgba(67, 97, 238, 0.2);
+    transform: none;
+}
+
+.primary-btn:active {
+    transform: none;
+    box-shadow: 0 2px 5px rgba(67, 97, 238, 0.2);
 }
 
 .primary-btn:disabled {
-    background-color: #bdc3c7;
+    background: linear-gradient(135deg, #d1d9e6, #e2e8f0);
+    color: #8e9aaf;
+    box-shadow: none;
     cursor: not-allowed;
+    transform: none;
 }
 
 .secondary-btn {
-    background-color: #ecf0f1;
-    color: #2c3e50;
+    background-color: var(--bg-secondary);
+    color: var(--text-primary);
+    border: 1px solid var(--border-color);
 }
 
 .secondary-btn:hover {
-    background-color: #d6dbdf;
+    background-color: #e9ecef;
+    border-color: #d1d9e6;
 }
 
 .success-btn {
-    background-color: #2ecc71;
+    background: linear-gradient(135deg, #10b981, #059669);
     color: white;
+    box-shadow: 0 3px 10px rgba(16, 185, 129, 0.2);
 }
 
 .success-btn:hover {
-    background-color: #27ae60;
+    background-position: 100% 0;
+    box-shadow: 0 5px 15px rgba(16, 185, 129, 0.3);
 }
 
 .warning-btn {
-    background-color: #f39c12;
+    background: linear-gradient(135deg, #f59e0b, #d97706);
     color: white;
+    box-shadow: 0 3px 10px rgba(245, 158, 11, 0.2);
 }
 
 .warning-btn:hover {
-    background-color: #d35400;
+    background-position: 100% 0;
+    box-shadow: 0 5px 15px rgba(245, 158, 11, 0.3);
 }
 
 .danger-btn {
-    background-color: #e74c3c;
+    background: linear-gradient(135deg, var(--accent), #e6125b);
     color: white;
+    box-shadow: 0 3px 10px rgba(247, 37, 133, 0.2);
 }
 
 .danger-btn:hover {
-    background-color: #c0392b;
+    background-position: 100% 0;
+    box-shadow: 0 5px 15px rgba(247, 37, 133, 0.3);
+}
+
+/* Stiluri efect de scanare pentru imaginea ecranului */
+@keyframes scan-effect {
+    0% {
+        background-position: 0% 0%;
+    }
+    100% {
+        background-position: 0% 100%;
+    }
+}
+
+.screen-container::after {
+    content: none;
+}
+
+.scan-active #screen {
+    filter: none;
+    transition: none;
+}
+
+/* Animație avansată pentru butoane și elemente */
+@keyframes float {
+    0% { transform: translateY(0px); }
+    50% { transform: translateY(-8px); }
+    100% { transform: translateY(0px); }
+}
+
+.ripple-button {
+    position: relative;
+    overflow: hidden;
+}
+
+.ripple-button::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: radial-gradient(circle, rgba(255, 255, 255, 0.3) 0%, transparent 70%);
+    transform: scale(0);
+    transition: transform 0.5s cubic-bezier(0.19, 1, 0.22, 1);
+}
+
+.ripple-button:hover::before {
+    transform: none;
+}
+
+/* Efect de gradient progresiv pentru textul accentuat */
+.accent-gradient-text {
+    background: linear-gradient(135deg, var(--primary), var(--secondary), var(--primary));
+    background-size: 200% 200%;
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    animation: gradient-move 5s ease infinite;
+}
+
+@keyframes gradient-move {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+}
+
+/* Animație typing îmbunătățită pentru terminal */
+@keyframes typing-cursor {
+    0%, 100% { border-color: transparent; }
+    50% { border-color: var(--primary); }
+}
+
+#terminal-output div.typing p::after {
+    content: '';
+    display: inline-block;
+    width: 6px;
+    height: 15px;
+    background-color: var(--primary);
+    margin-left: 3px;
+    animation: typing-cursor 0.7s infinite;
 }
 
 /* Stiluri pentru dashboard */
@@ -162,19 +527,30 @@ button {
     min-height: 100vh;
     display: flex;
     flex-direction: column;
+    background-color: var(--bg-secondary);
+    animation: fadeIn 0.5s ease-out forwards;
 }
 
 header {
-    background-color: #2c3e50;
-    color: white;
+    background-color: var(--bg-card);
+    color: var(--text-primary);
     padding: 1rem 2rem;
     display: flex;
     justify-content: space-between;
     align-items: center;
+    box-shadow: var(--shadow-sm);
+    position: sticky;
+    top: 0;
+    z-index: 100;
 }
 
 header h1 {
-    font-size: 1.5rem;
+    font-size: 1.8rem;
+    font-weight: 800;
+    background: linear-gradient(to right, var(--primary), var(--secondary));
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
 }
 
 .connection-info {
@@ -185,12 +561,12 @@ header h1 {
 
 #connection-info {
     font-size: 0.9rem;
-    color: #ecf0f1;
+    color: var(--text-secondary);
 }
 
 #server-host {
-    font-weight: bold;
-    color: #3498db;
+    font-weight: 600;
+    color: var(--primary);
 }
 
 header #logout-btn {
@@ -200,8 +576,11 @@ header #logout-btn {
 .dashboard-container {
     display: flex;
     flex: 1;
-    padding: 1rem;
-    gap: 1rem;
+    padding: 1.5rem;
+    gap: 1.5rem;
+    max-width: 1400px;
+    margin: 0 auto;
+    width: 100%;
 }
 
 /* Stiluri pentru sidebar */
@@ -209,7 +588,7 @@ header #logout-btn {
     width: 300px;
     display: flex;
     flex-direction: column;
-    gap: 1rem;
+    gap: 1.5rem;
 }
 
 /* Stiluri pentru conținutul principal */
@@ -217,50 +596,72 @@ header #logout-btn {
     flex: 1;
     display: flex;
     flex-direction: column;
-    gap: 1rem;
+    gap: 1.5rem;
 }
 
 /* Stiluri pentru panouri */
 .panel {
-    background-color: white;
-    border-radius: 8px;
-    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
-    padding: 1rem;
+    background-color: var(--bg-card);
+    border-radius: var(--radius-md);
+    box-shadow: var(--shadow-sm);
+    padding: 1.5rem;
+    transition: all 0.2s ease;
+    border: 1px solid var(--border-color);
+}
+
+.panel:hover {
+    transform: none;
+    box-shadow: var(--shadow-sm);
 }
 
 .panel h2 {
-    font-size: 1.2rem;
-    margin-bottom: 1rem;
-    color: #2c3e50;
+    font-size: 1.25rem;
+    margin-bottom: 1.5rem;
+    color: var(--text-primary);
     display: flex;
     align-items: center;
+    font-weight: 700;
+    letter-spacing: -0.02em;
 }
 
 .panel h2 i {
-    margin-right: 0.5rem;
-    color: #3498db;
+    margin-right: 0.75rem;
+    color: var(--primary);
 }
 
 /* Stiluri pentru acțiuni rapide */
 .action-btn {
-    display: block;
+    display: flex;
+    align-items: center;
     width: 100%;
     text-align: left;
-    background-color: #f8f9fa;
-    border: 1px solid #ddd;
-    margin-bottom: 0.5rem;
-    padding: 0.5rem 1rem;
-    border-radius: 4px;
-    transition: all 0.2s ease;
+    background-color: var(--bg-primary);
+    border: 1px solid var(--border-color);
+    margin-bottom: 0.75rem;
+    padding: 0.75rem 1rem;
+    border-radius: var(--radius-btn);
+    transition: all 0.2s cubic-bezier(0.17, 0.67, 0.83, 0.67);
+    font-weight: 500;
+    height: 48px;
 }
 
 .action-btn:hover {
-    background-color: #e9ecef;
-    border-color: #bbb;
+    background-color: rgba(67, 97, 238, 0.05);
+    border-color: var(--primary);
+    transform: none;
 }
 
 .action-btn i {
-    margin-right: 0.5rem;
+    margin-right: 0.75rem;
+    color: var(--primary);
+    font-size: 1.1rem;
+    width: 24px;
+    text-align: center;
+}
+
+.action-btn.danger-btn i,
+.action-btn.warning-btn i {
+    color: inherit;
 }
 
 /* Stiluri pentru panoul ecranului */
@@ -272,12 +673,12 @@ header #logout-btn {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 1rem;
+    margin-bottom: 1.25rem;
 }
 
 .screen-buttons {
     display: flex;
-    gap: 0.5rem;
+    gap: 0.75rem;
 }
 
 .screen-buttons button {
@@ -288,9 +689,16 @@ header #logout-btn {
     position: relative;
     width: 100%;
     background-color: #000;
-    border-radius: 4px;
+    border-radius: var(--radius-btn);
     overflow: hidden;
     padding-top: 56.25%; /* Aspect ratio 16:9 */
+    border: 1px solid var(--border-color);
+    box-shadow: var(--shadow-sm);
+    transition: all 0.3s ease;
+}
+
+.screen-container:hover {
+    box-shadow: var(--shadow-sm);
 }
 
 #screen {
@@ -300,6 +708,24 @@ header #logout-btn {
     width: 100%;
     height: 100%;
     object-fit: contain;
+    transition: var(--transition);
+    opacity: 0;
+    animation: fadeScale 0.3s ease-out forwards;
+}
+
+#screen.loaded {
+    opacity: 1;
+}
+
+@keyframes fadeScale {
+    from {
+        opacity: 0;
+        transform: scale(0.98);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
 }
 
 #loading-overlay {
@@ -308,21 +734,22 @@ header #logout-btn {
     left: 0;
     width: 100%;
     height: 100%;
-    background-color: rgba(0, 0, 0, 0.7);
+    background-color: rgba(255, 255, 255, 0.85);
     display: flex;
     flex-direction: column;
     justify-content: center;
     align-items: center;
-    color: white;
+    color: var(--text-primary);
+    z-index: 10;
 }
 
 .spinner {
-    border: 4px solid rgba(255, 255, 255, 0.3);
-    border-top: 4px solid #fff;
+    border: 3px solid rgba(67, 97, 238, 0.1);
+    border-top: 3px solid var(--primary);
     border-radius: 50%;
     width: 40px;
     height: 40px;
-    animation: spin 1s linear infinite;
+    animation: spin 1s linear infinite, pulse 2s ease-in-out infinite;
     margin-bottom: 1rem;
 }
 
@@ -331,50 +758,108 @@ header #logout-btn {
     100% { transform: rotate(360deg); }
 }
 
+@keyframes pulse {
+    0%, 100% {
+        opacity: 0.6;
+    }
+    50% {
+        opacity: 1;
+    }
+}
+
 /* Stiluri pentru terminal */
 .terminal-panel {
     flex: 0 0 300px;
 }
 
 .terminal-container {
-    background-color: #2c3e50;
-    border-radius: 4px;
-    padding: 0.5rem;
+    background-color: #1a1b26;
+    border-radius: var(--radius-btn);
+    padding: 1.25rem;
     height: 300px;
     overflow-y: auto;
     margin-bottom: 1rem;
-    color: #ecf0f1;
-    font-family: 'Courier New', Courier, monospace;
+    color: #c0caf5;
+    font-family: 'JetBrains Mono', 'Fira Code', 'Menlo', monospace;
+    font-size: 0.85rem;
+    line-height: 1.6;
+    scrollbar-width: thin;
+    scrollbar-color: rgba(255, 255, 255, 0.2) transparent;
+    box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.2);
+}
+
+.terminal-container::-webkit-scrollbar {
+    width: 6px;
+}
+
+.terminal-container::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.terminal-container::-webkit-scrollbar-thumb {
+    background-color: rgba(255, 255, 255, 0.2);
+    border-radius: 3px;
+}
+
+.terminal-container::-webkit-scrollbar-thumb:hover {
+    background-color: rgba(255, 255, 255, 0.3);
 }
 
 .terminal-input {
     display: flex;
-    gap: 0.5rem;
+    gap: 0.75rem;
 }
 
 #command-input {
     flex: 1;
-    padding: 0.5rem;
-    border: 1px solid #ddd;
-    border-radius: 4px;
-    font-family: 'Courier New', Courier, monospace;
+    padding: 0.75rem 1rem;
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-btn);
+    font-family: 'JetBrains Mono', 'Fira Code', 'Menlo', monospace;
+    font-size: 0.9rem;
+    background-color: var(--bg-primary);
+    color: var(--text-primary);
+    transition: all 0.2s ease;
+    height: 48px;
+}
+
+#command-input:focus {
+    outline: none;
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3px rgba(67, 97, 238, 0.15);
 }
 
 /* Stiluri pentru erori în terminal */
 .terminal-container .error {
-    color: #e74c3c;
+    color: var(--accent-soft);
 }
 
 .terminal-container .success {
-    color: #2ecc71;
+    color: #10b981;
 }
 
 .terminal-container .info {
-    color: #f39c12;
+    color: #f59e0b;
 }
 
+/* Animații subtile */
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.panel {
+    animation: none;
+}
+
+.sidebar .panel:nth-child(1) { animation-delay: 0.1s; }
+.sidebar .panel:nth-child(2) { animation-delay: 0.2s; }
+.sidebar .panel:nth-child(3) { animation-delay: 0.3s; }
+.main-content .panel:nth-child(1) { animation-delay: 0.2s; }
+.main-content .panel:nth-child(2) { animation-delay: 0.3s; }
+
 /* Stiluri responsive */
-@media (max-width: 900px) {
+@media (max-width: 1024px) {
     .dashboard-container {
         flex-direction: column;
     }
@@ -386,11 +871,37 @@ header #logout-btn {
     .terminal-panel {
         flex: auto;
     }
+}
+
+@media (max-width: 600px) {
+    header {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 1rem;
+        padding: 1rem;
+    }
+    
+    header h1 {
+        text-align: center;
+    }
     
     .connection-info {
         flex-direction: column;
-        align-items: flex-end;
+        align-items: center;
         gap: 0.5rem;
+    }
+    
+    .panel {
+        padding: 1rem;
+    }
+    
+    .dashboard-container {
+        padding: 1rem;
+        gap: 1rem;
+    }
+    
+    .login-container {
+        padding: 1.5rem;
     }
 }
 
@@ -398,7 +909,7 @@ header #logout-btn {
 #system-info-content {
     display: grid;
     grid-template-columns: auto 1fr;
-    gap: 0.5rem 1rem;
+    gap: 0.75rem 1.25rem;
 }
 
 #system-info-content p {
@@ -406,13 +917,14 @@ header #logout-btn {
 }
 
 #system-info-content p.error {
-    color: #e74c3c;
+    color: var(--accent);
     grid-column: 1 / -1;
     display: block;
 }
 
 #system-info-content strong {
-    color: #2c3e50;
+    color: var(--text-primary);
+    font-weight: 600;
 }
 
 /* Stiluri pentru output terminal */
@@ -421,10 +933,348 @@ header #logout-btn {
 }
 
 #terminal-output p {
-    margin-bottom: 0.25rem;
+    margin-bottom: 0.35rem;
 }
 
 #terminal-output pre {
     margin-bottom: 1rem;
     white-space: pre-wrap;
+    font-size: 0.85rem;
+}
+
+/* Stiluri pentru footer */
+footer {
+    background-color: var(--bg-card);
+    border-top: 1px solid var(--border-color);
+    padding: 1rem 2rem;
+    margin-top: 2rem;
+    text-align: center;
+}
+
+.footer-content {
+    max-width: 1400px;
+    margin: 0 auto;
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+}
+
+.accent-text {
+    color: var(--primary);
+    font-weight: 500;
+}
+
+/* Îmbunătățiri animații pentru elemente interactive */
+.action-btn, .primary-btn, .success-btn, .warning-btn, .danger-btn, .secondary-btn {
+    position: relative;
+    overflow: hidden;
+}
+
+.action-btn::after, 
+.primary-btn::after, 
+.success-btn::after, 
+.warning-btn::after, 
+.danger-btn::after, 
+.secondary-btn::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 5px;
+    height: 5px;
+    background: rgba(255, 255, 255, 0.5);
+    opacity: 0;
+    border-radius: 100%;
+    transform: scale(1, 1) translate(-50%, -50%);
+    transform-origin: 50% 50%;
+}
+
+.action-btn:active::after, 
+.primary-btn:active::after, 
+.success-btn:active::after, 
+.warning-btn:active::after, 
+.danger-btn:active::after, 
+.secondary-btn:active::after {
+    animation: ripple 0.4s ease-out;
+}
+
+@keyframes ripple {
+    0% {
+        transform: scale(0, 0);
+        opacity: 0.5;
+    }
+    100% {
+        transform: scale(100, 100);
+        opacity: 0;
+    }
+}
+
+/* Animații pentru tranziții între ecrane */
+.login-screen {
+    animation: fadeIn 0.5s ease-out forwards;
+}
+
+.dashboard {
+    animation: fadeIn 0.5s ease-out forwards;
+}
+
+/* Stilul îmbunătățit pentru câmpul de parolă */
+input[type="password"] {
+    font-family: inherit;
+    font-size: 1rem;
+    color: var(--text-primary);
+}
+
+/* Input styling pentru textul parolei */
+input#password {
+    letter-spacing: 0;
+    font-size: 1rem;
+    transition: none;
+}
+
+/* Text blur cu protecție la selecție */
+.password-blur {
+    color: rgba(0, 0, 0, 0) !important; 
+    text-shadow: 0 0 25px rgba(0, 0, 0, 0.14), 
+                 0 0 18px rgba(0, 0, 0, 0.12), 
+                 0 0 12px rgba(0, 0, 0, 0.08), 
+                 0 0 8px rgba(0, 0, 0, 0.06), 
+                 0 0 5px rgba(0, 0, 0, 0.04);
+    letter-spacing: 0;
+    font-size: 1rem;
+    font-weight: normal;
+    transition: none; /* Fără tranziție la aplicarea inițială */
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+}
+
+/* Personalizarea stilului de selecție pentru input-ul blurat */
+.password-blur::selection {
+    color: rgba(0, 0, 0, 0) !important;
+    text-shadow: 0 0 25px rgba(0, 0, 0, 0.14), 
+                 0 0 18px rgba(0, 0, 0, 0.12), 
+                 0 0 12px rgba(0, 0, 0, 0.08), 
+                 0 0 8px rgba(0, 0, 0, 0.06), 
+                 0 0 5px rgba(0, 0, 0, 0.04);
+    background-color: rgba(67, 97, 238, 0.2);
+}
+
+.password-blur::-moz-selection {
+    color: rgba(0, 0, 0, 0) !important;
+    text-shadow: 0 0 25px rgba(0, 0, 0, 0.14), 
+                 0 0 18px rgba(0, 0, 0, 0.12), 
+                 0 0 12px rgba(0, 0, 0, 0.08), 
+                 0 0 8px rgba(0, 0, 0, 0.06), 
+                 0 0 5px rgba(0, 0, 0, 0.04);
+    background-color: rgba(67, 97, 238, 0.2);
+}
+
+/* Cu tranziție DOAR pentru butonul de ochi */
+.password-toggle-fade-in {
+    transition: color 0.35s ease-in, text-shadow 0.35s ease-in !important;
+}
+
+.password-toggle-fade-out {
+    transition: color 0.35s ease-out, text-shadow 0.35s ease-out !important;
+}
+
+/* Text clar */
+.password-clear {
+    color: var(--text-primary);
+    text-shadow: none;
+    letter-spacing: normal;
+    font-size: 1rem;
+}
+
+/* Butonul pentru toggle parola - poziționare corectă */
+.password-toggle {
+    position: absolute !important;
+    right: 6px !important;
+    top: 50% !important;
+    transform: translateY(-50%) !important;
+    width: 40px !important;
+    height: 40px !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    background: none !important;
+    border: none !important;
+    border-radius: 50% !important;
+    color: var(--text-secondary);
+    font-size: 1.1rem;
+    cursor: pointer;
+    z-index: 2;
+    padding: 0 !important;
+    transition: background 0.2s ease, color 0.2s ease;
+}
+
+.password-toggle:hover {
+    color: var(--primary);
+    background: rgba(67, 97, 238, 0.05) !important;
+}
+
+/* Stiluri pentru notificarea de securitate a parolei */
+.security-note {
+    display: block;
+    font-size: 0.8rem;
+    color: var(--text-secondary);
+    margin-top: 4px;
+    opacity: 0.8;
+    transition: opacity 0.3s ease;
+}
+
+.security-note i {
+    color: var(--success);
+    margin-right: 4px;
+    font-size: 0.8rem;
+}
+
+.input-wrapper:focus-within + .security-note {
+    opacity: 1;
+    color: var(--text-primary);
+}
+
+/* Stiluri pentru opțiunile de conexiune */
+.connection-options {
+    display: flex;
+    justify-content: space-between;
+    margin: 1.5rem 0;
+    padding: 0 0.5rem;
+}
+
+.option-item {
+    display: flex;
+    align-items: center;
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+}
+
+.option-item input[type="checkbox"] {
+    margin-right: 8px;
+    accent-color: var(--primary);
+    width: 16px;
+    height: 16px;
+    cursor: pointer;
+}
+
+.option-item label {
+    cursor: pointer;
+}
+
+/* Stiluri pentru footer-ul de login */
+.login-footer {
+    margin-top: 2rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding-top: 1.5rem;
+    border-top: 1px solid var(--border-color);
+    font-size: 0.8rem;
+    color: var(--text-secondary);
+}
+
+.security-badge {
+    display: flex;
+    align-items: center;
+    color: #10b981;
+    font-weight: 500;
+}
+
+.security-badge i {
+    margin-right: 6px;
+    font-size: 0.9rem;
+}
+
+.version-info {
+    font-size: 0.75rem;
+    opacity: 0.7;
+}
+
+/* Eliminare animație pentru butoane la hover */
+.action-btn:hover i, .primary-btn:hover i, .success-btn:hover i, .warning-btn:hover i {
+    animation: none;
+    transform: none;
+}
+
+/* Eliminare animație pentru panouri */
+.panel {
+    animation: none;
+}
+
+/* Dezactivare toate hover-urile pentru containerele din dashboard */
+.dashboard-container .panel:hover,
+.sidebar .panel:hover,
+.main-content .panel:hover {
+    transform: none;
+    box-shadow: var(--shadow-sm);
+    transition: none;
+}
+
+/* Efect de typing pentru text terminal */
+@keyframes typing {
+    from { width: 0 }
+    to { width: 100% }
+}
+
+#terminal-output div:last-child {
+    overflow: hidden;
+    white-space: nowrap;
+    animation: typing 0.5s steps(30, end);
+}
+
+/* Efect de gradient pentru textul accentuat */
+.accent-gradient {
+    background: linear-gradient(90deg, var(--primary) 0%, var(--secondary) 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    display: inline-block;
+}
+
+/* Stilul pentru efectul de ripple la click */
+.ripple {
+    position: absolute;
+    border-radius: 50%;
+    background-color: rgba(255, 255, 255, 0.4);
+    width: 100px;
+    height: 100px;
+    transform: scale(0);
+    animation: ripple-animation 0.6s ease-out;
+    pointer-events: none;
+}
+
+@keyframes ripple-animation {
+    to {
+        transform: scale(2.5);
+        opacity: 0;
+    }
+}
+
+/* Icon în input și butonul de ochi - poziționare corectă */
+.input-wrapper {
+    position: relative;
+    width: 100%;
+    display: flex;
+    align-items: center;
+}
+
+.input-icon {
+    position: absolute !important;
+    left: 15px !important;
+    top: 50% !important;
+    transform: translateY(-50%) !important;
+    color: var(--text-secondary);
+    font-size: 1rem !important;
+    opacity: 1 !important;
+    pointer-events: none;
+    z-index: 1;
+}
+
+.input-wrapper:focus-within .input-icon {
+    color: var(--primary);
+}
+
+.input-wrapper input {
+    padding-left: 45px !important;
 } 
