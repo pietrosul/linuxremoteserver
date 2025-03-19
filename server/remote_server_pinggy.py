@@ -8,7 +8,7 @@ import base64
 import json
 import sys
 import importlib.util
-from pyngrok import ngrok
+import re
 
 # Verifică dacă un pachet este instalat
 def is_package_installed(package_name):
@@ -21,8 +21,7 @@ def install_dependencies():
         'flask_cors': 'flask-cors',
         'pyautogui': 'pyautogui',
         'numpy': 'numpy',
-        'cv2': 'opencv-python',
-        'pyngrok': 'pyngrok'
+        'cv2': 'opencv-python'
     }
     
     packages_to_install = []
@@ -62,15 +61,57 @@ SERVER_HOST = '0.0.0.0'  # Ascultă pe toate interfețele de rețea
 SERVER_PORT = 8080
 PASSWORD = "parola_secretă_puternică"  # Schimbă cu o parolă puternică
 
-# Funcție pentru a obține o URL publică folosind ngrok
-def start_ngrok():
+# Funcție pentru a obține o URL publică folosind Pinggy
+def start_pinggy_tunnel():
     try:
-        # Creează un tunel HTTP către portul local
-        public_url = ngrok.connect(SERVER_PORT, "http")
-        print(f"Server accesibil la URL-ul public: {public_url}")
-        return public_url
+        # Verifică dacă SSH este disponibil
+        try:
+            subprocess.run(["ssh", "-V"], capture_output=True, check=True)
+        except (subprocess.SubprocessError, FileNotFoundError):
+            print("SSH nu este instalat sau nu este disponibil. Tunelul Pinggy nu poate fi pornit.")
+            return None
+        
+        # Comandă pentru a obține URL-ul Pinggy
+        cmd = "ssh -R 0:localhost:8080 a.pinggy.io"
+        
+        # Pornește procesul
+        process = subprocess.Popen(
+            cmd, 
+            shell=True, 
+            stdout=subprocess.PIPE, 
+            stderr=subprocess.PIPE,
+            text=True
+        )
+        
+        # Funcție pentru a monitoriza output-ul și a extrage URL-ul
+        def monitor_output():
+            pinggy_url = None
+            
+            # Pattern pentru a găsi URL-ul Pinggy
+            url_pattern = re.compile(r'https://[^\s]+\.pinggy\.io')
+            
+            # Citirea și procesarea output-ului
+            for line in iter(process.stdout.readline, ''):
+                print("Pinggy:", line.strip())
+                match = url_pattern.search(line)
+                if match and not pinggy_url:
+                    pinggy_url = match.group(0)
+                    print(f"URL public Pinggy: {pinggy_url}")
+                    # Actualizează informațiile de sistem cu URL-ul
+                    system_info["public_url"] = pinggy_url
+        
+        # Pornește monitorizarea într-un thread separat
+        monitor_thread = threading.Thread(target=monitor_output)
+        monitor_thread.daemon = True
+        monitor_thread.start()
+        
+        # Așteaptă un timp pentru a oferi șansa obținerii URL-ului
+        time.sleep(3)
+        
+        print("Tunel Pinggy pornit în fundal")
+        return True
     except Exception as e:
-        print(f"Eroare la pornirea ngrok: {e}")
+        print(f"Eroare la pornirea tunelului Pinggy: {e}")
         return None
 
 # Stocăm informații despre sistemul țintă
@@ -147,141 +188,6 @@ def auth():
         return jsonify({"success": True})
     return jsonify({"success": False})
 
-# Rută pentru Dashboard
-@app.route('/dashboard')
-def dashboard():
-    html = """
-    <!DOCTYPE html>
-    <html>
-    <head>
-        <title>Dashboard Control</title>
-        <style>
-            body { font-family: Arial, sans-serif; margin: 0; padding: 20px; background-color: #f5f5f5; }
-            .container { display: flex; flex-direction: column; max-width: 1200px; margin: 0 auto; }
-            .screen-container { width: 100%; position: relative; margin-bottom: 20px; }
-            #screen { width: 100%; border: 1px solid #ddd; background: #000; }
-            .controls { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 20px; }
-            .button { padding: 10px 15px; background: #4285f4; color: white; border: none; border-radius: 4px; cursor: pointer; }
-            .button:hover { background: #3367d6; }
-            .terminal { width: 100%; height: 300px; background: #000; color: #00ff00; padding: 10px; border-radius: 4px; overflow-y: auto; font-family: monospace; }
-            .info-panel { background: white; padding: 15px; border-radius: 8px; margin-bottom: 20px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
-            .red { background: #d23f31; }
-            .red:hover { background: #c0392b; }
-        </style>
-    </head>
-    <body>
-        <div class="container">
-            <h1>Control de la distanță</h1>
-            
-            <div class="info-panel">
-                <h2>Informații sistem</h2>
-                <div id="system-info"></div>
-            </div>
-            
-            <div class="screen-container">
-                <img id="screen" alt="Ecran la distanță">
-            </div>
-            
-            <div class="controls">
-                <button class="button" onclick="refreshScreen()">Reîmprospătare ecran</button>
-                <button class="button" onclick="startScreenStream()">Stream live</button>
-                <button class="button" onclick="stopScreenStream()">Oprire stream</button>
-                <button class="button" onclick="executeCommand('ls -la')">Listare fișiere</button>
-                <button class="button" onclick="executeCommand('uptime')">Uptime</button>
-                <button class="button" onclick="executeCommand('df -h')">Spațiu disc</button>
-                <button class="button" onclick="executeCommand('free -h')">Memorie</button>
-                <button class="button" onclick="executeCommand('ps aux | head -10')">Procese active</button>
-                <button class="button red" onclick="executeCommand('systemctl poweroff')">Shutdown</button>
-                <button class="button red" onclick="executeCommand('systemctl reboot')">Restart</button>
-            </div>
-            
-            <div>
-                <h3>Comandă personalizată</h3>
-                <input type="text" id="custom-command" style="width: 80%; padding: 8px;">
-                <button class="button" onclick="runCustomCommand()">Execută</button>
-            </div>
-            
-            <h3>Terminal</h3>
-            <div class="terminal" id="terminal-output"></div>
-        </div>
-        
-        <script>
-            let streamActive = false;
-            let streamInterval = null;
-            
-            // Încarcă informațiile despre sistem
-            fetch('/api/system-info')
-                .then(response => response.json())
-                .then(data => {
-                    const infoDiv = document.getElementById('system-info');
-                    infoDiv.innerHTML = `
-                        <p><strong>Hostname:</strong> ${data.hostname}</p>
-                        <p><strong>IP:</strong> ${data.ip}</p>
-                        <p><strong>Sistem de operare:</strong> ${data.os}</p>
-                        <p><strong>Utilizator:</strong> ${data.username}</p>
-                    `;
-                })
-                .catch(error => {
-                    console.error("Eroare la încărcarea informațiilor de sistem:", error);
-                });
-            
-            // Funcția pentru reîmprospătarea ecranului
-            function refreshScreen() {
-                const screenImg = document.getElementById('screen');
-                screenImg.src = '/api/screenshot?' + new Date().getTime();
-            }
-            
-            // Funcția pentru pornirea stream-ului de ecran
-            function startScreenStream() {
-                if (streamActive) return;
-                
-                streamActive = true;
-                streamInterval = setInterval(refreshScreen, 1000);
-            }
-            
-            // Funcția pentru oprirea stream-ului
-            function stopScreenStream() {
-                streamActive = false;
-                clearInterval(streamInterval);
-            }
-            
-            // Funcția pentru executarea unei comenzi
-            function executeCommand(command) {
-                fetch('/api/execute', {
-                    method: 'POST',
-                    headers: {'Content-Type': 'application/json'},
-                    body: JSON.stringify({command: command})
-                })
-                .then(response => response.json())
-                .then(data => {
-                    const terminal = document.getElementById('terminal-output');
-                    terminal.innerHTML += `<p>> ${command}</p><pre>${data.output}</pre>`;
-                    terminal.scrollTop = terminal.scrollHeight;
-                })
-                .catch(error => {
-                    const terminal = document.getElementById('terminal-output');
-                    terminal.innerHTML += `<p>> ${command}</p><pre>Eroare: ${error.message}</pre>`;
-                    terminal.scrollTop = terminal.scrollHeight;
-                });
-            }
-            
-            // Funcția pentru executarea unei comenzi personalizate
-            function runCustomCommand() {
-                const command = document.getElementById('custom-command').value;
-                if (command.trim() !== '') {
-                    executeCommand(command);
-                    document.getElementById('custom-command').value = '';
-                }
-            }
-            
-            // Inițializare
-            refreshScreen();
-        </script>
-    </body>
-    </html>
-    """
-    return html
-
 # API pentru informațiile de sistem
 @app.route('/api/system-info', methods=['GET', 'OPTIONS'])
 def api_system_info():
@@ -354,13 +260,12 @@ def api_execute():
     except Exception as e:
         return jsonify({"error": str(e)})
 
-# Rută pentru a afișa URL-ul ngrok
+# Rută pentru a afișa informații despre tunel
 @app.route('/api/tunnel-info', methods=['GET'])
 def tunnel_info():
-    tunnels = ngrok.get_tunnels()
-    if tunnels:
+    if 'public_url' in system_info:
         return jsonify({
-            "tunnel_url": tunnels[0].public_url,
+            "tunnel_url": system_info['public_url'],
             "local_url": f"http://{system_info['ip']}:{SERVER_PORT}"
         })
     return jsonify({"error": "Nu există tuneluri active"})
@@ -385,12 +290,13 @@ if __name__ == "__main__":
     print(f"Poți accesa de pe orice dispozitiv din rețeaua locală.")
     print(f"IMPORTANT: Acest tool este creat doar pentru scopuri educaționale și folosire pe propriile sisteme!")
     
-    # Pornește ngrok pentru acces de la distanță
-    public_url = start_ngrok()
-    if public_url:
-        print(f"URL-ul public pentru acces de la distanță: {public_url}")
-        # Actualizează informațiile de sistem cu URL-ul public
-        system_info["public_url"] = public_url
+    # Pornește tunelul Pinggy pentru acces de la distanță
+    pinggy_result = start_pinggy_tunnel()
+    if pinggy_result:
+        print("Serviciul Pinggy a fost pornit și va furniza un URL public pentru accesul de la distanță.")
+        print("Verifică consolă pentru URL sau accesează /api/tunnel-info pentru detalii.")
+    else:
+        print("Nu s-a putut porni tunelul Pinggy. Serverul va fi disponibil doar în rețeaua locală.")
     
     # Actualizează informațiile de sistem periodic
     update_thread = threading.Thread(target=update_system_info)

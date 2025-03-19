@@ -7,7 +7,7 @@ let isStreamActive = false;
 const CONFIG = {
     FETCH_TIMEOUT: 10000, // 10 secunde timeout pentru request-uri
     RETRY_ATTEMPTS: 3,    // Număr de încercări pentru request-uri eșuate
-    STREAM_INTERVAL: 1000 // Intervalul de reîmprospătare a stream-ului (ms)
+    STREAM_INTERVAL: 800 // Intervalul de reîmprospătare a stream-ului (ms)
 };
 
 // Variable pentru setări utilizator
@@ -36,7 +36,8 @@ const elements = {
     executeCommandBtn: document.getElementById('execute-command'),
     serverHost: document.getElementById('server-host'),
     checkConnectionBtn: document.getElementById('check-connection'),
-    connectionStatus: document.getElementById('connection-status')
+    connectionStatus: document.getElementById('connection-status'),
+    ngrokInfoContainer: document.getElementById('ngrok-info')
 };
 
 // La inițializare, verifică și setările salvate
@@ -255,6 +256,9 @@ async function checkServerConnection() {
         
         // Dacă conexiunea este validă, activăm butonul de login
         elements.loginBtn.disabled = !result.valid;
+        
+        // Verifică și afișează informațiile despre tunelul ngrok
+        checkNgrokTunnel(serverAddress);
         
         return result;
     } catch (error) {
@@ -614,5 +618,32 @@ function handlePasswordInput() {
         this.classList.remove('password-clear');
         this.classList.remove('password-toggle-fade-in');
         this.classList.remove('password-toggle-fade-out');
+    }
+}
+
+// Funcție pentru a verifica și afișa informații despre tunelul ngrok
+async function checkNgrokTunnel(serverUrl) {
+    try {
+        const response = await fetchWithTimeout(`${serverUrl}/api/tunnel-info`);
+        if (response.ok) {
+            const data = await response.json();
+            if (data.tunnel_url) {
+                elements.ngrokInfoContainer.innerHTML = `
+                    <div class="info-section">
+                        <h3>Informații tunel</h3>
+                        <p><strong>URL public:</strong> <a href="${data.tunnel_url}" target="_blank">${data.tunnel_url}</a></p>
+                        <p><strong>URL local:</strong> ${data.local_url}</p>
+                    </div>
+                `;
+                elements.ngrokInfoContainer.style.display = 'block';
+                return true;
+            }
+        }
+        elements.ngrokInfoContainer.style.display = 'none';
+        return false;
+    } catch (error) {
+        elements.ngrokInfoContainer.style.display = 'none';
+        console.log('Serverul nu are un tunel ngrok activ sau a apărut o eroare:', error);
+        return false;
     }
 } 
