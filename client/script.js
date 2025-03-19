@@ -7,7 +7,9 @@ let isStreamActive = false;
 const CONFIG = {
     FETCH_TIMEOUT: 10000, // 10 secunde timeout pentru request-uri
     RETRY_ATTEMPTS: 3,    // Număr de încercări pentru request-uri eșuate
-    STREAM_INTERVAL: 800 // Intervalul de reîmprospătare a stream-ului (ms)
+    STREAM_INTERVAL: 1000, // Intervalul de reîmprospătare a stream-ului (ms)
+    PRELOAD_IMAGES: true,  // Preîncărcarea imaginilor pentru stream fluid
+    MINIMUM_FRAME_DELAY: 200 // Delay minim între frame-uri (ms)
 };
 
 // Variable pentru setări utilizator
@@ -444,67 +446,205 @@ function markScreenAsLoaded() {
     elements.screen.classList.add('loaded');
 }
 
-// Modificare la funcția refreshScreen() pentru a implementa animația
+// Funcție îmbunătățită pentru reîmprospătarea capturii de ecran
 function refreshScreen() {
-    // Afișăm indicatorul de încărcare
-    elements.loadingOverlay.classList.remove('hidden');
-    
-    // Eliminăm clasa 'loaded' de pe imagine
-    elements.screen.classList.remove('loaded');
-    
-    // Setăm sursa imaginii cu un timestamp pentru a evita cache-ul
-    const timestamp = new Date().getTime();
-    elements.screen.src = `${serverAddress}/api/screenshot?t=${timestamp}`;
-    
-    // Ascundem indicatorul de încărcare când imaginea s-a încărcat
-    elements.screen.onload = () => {
-        elements.loadingOverlay.classList.add('hidden');
-        // Adăugăm clasa 'loaded' la imagine
-        markScreenAsLoaded();
-    };
-    
-    // Ascundem indicatorul de încărcare dacă apare o eroare
-    elements.screen.onerror = () => {
-        elements.loadingOverlay.classList.add('hidden');
-        // Adăugăm un mesaj de eroare
-        appendToTerminal("Eroare la încărcarea capturii de ecran. Verificați conexiunea.", 'error');
-    };
+    if (!CONFIG.PRELOAD_IMAGES) {
+        // Metodă clasică - arată loading la fiecare frame
+        elements.loadingOverlay.classList.remove('hidden');
+        elements.screen.classList.remove('loaded');
+        
+        // Creem un timestamp pentru a evita cache-ul
+        const timestamp = new Date().getTime();
+        const imageUrl = `${serverAddress}/api/screenshot?t=${timestamp}`;
+        
+        // Adăugăm un event listener pentru a marca imaginea ca încărcată
+        elements.screen.onload = markScreenAsLoaded;
+        
+        // Adăugăm un event listener pentru a gestiona erorile
+        elements.screen.onerror = () => {
+            elements.loadingOverlay.classList.remove('hidden');
+            elements.loadingOverlay.querySelector('p').textContent = 'Eroare la încărcarea capturii';
+        };
+        
+        // Setăm sursa imaginii
+        elements.screen.src = imageUrl;
+    } else {
+        // Metodă optimizată - preîncarcă următoarea imagine
+        // și o afișează doar când e complet încărcată
+        const timestamp = new Date().getTime();
+        const imageUrl = `${serverAddress}/api/screenshot?t=${timestamp}`;
+        
+        // Doar la prima încărcare arătăm overlay-ul
+        if (!elements.screen.src || elements.screen.src === '') {
+            elements.loadingOverlay.classList.remove('hidden');
+        }
+        
+        // Creăm o imagine nouă și o încărcăm în fundal
+        const newImage = new Image();
+        
+        // Când imaginea e încărcată, o afișăm
+        newImage.onload = function() {
+            // Arătăm noua imagine
+            elements.screen.src = this.src;
+            elements.screen.classList.add('loaded');
+            elements.loadingOverlay.classList.add('hidden');
+            
+            // Adăugăm indicațiile pentru clasa scan-active
+            const screenContainer = document.getElementById('screen-container');
+            if (screenContainer) {
+                screenContainer.classList.add('scan-active');
+                setTimeout(() => {
+                    screenContainer.classList.remove('scan-active');
+                }, 300);
+            }
+        };
+        
+        // În caz de eroare
+        newImage.onerror = () => {
+            if (isStreamActive) {
+                elements.loadingOverlay.classList.remove('hidden');
+                elements.loadingOverlay.querySelector('p').textContent = 'Eroare la încărcarea capturii';
+            }
+        };
+        
+        // Inițializăm încărcarea
+        newImage.src = imageUrl;
+    }
 }
 
-// Funcție pentru pornirea stream-ului de ecran
+// Funcție pentru pornirea stream-ului de capturi de ecran - îmbunătățită
 function startScreenStream() {
+    // Verificăm dacă stream-ul este deja activ
     if (isStreamActive) return;
     
-    // Ascundem butonul de pornire și afișăm butonul de oprire
+    // Marcăm stream-ul ca activ
+    isStreamActive = true;
+    
+    // Actualizăm UI-ul
     elements.startStreamBtn.classList.add('hidden');
     elements.stopStreamBtn.classList.remove('hidden');
     
-    // Setăm flag-ul de stream activ
-    isStreamActive = true;
+    // Încărcăm prima captură
+    refreshScreen();
     
-    // Pornim un interval pentru reîmprospătarea ecranului
-    streamInterval = setInterval(refreshScreen, CONFIG.STREAM_INTERVAL);
+    // Setăm intervalul pentru reîmprospătare cu gestionarea delay-ului minim
+    let lastRefreshTime = Date.now();
     
-    // Afișăm un mesaj în terminal
-    appendToTerminal("Stream live pornit", 'info');
+    streamInterval = setInterval(() => {
+        const currentTime = Date.now();
+        const timeSinceLastRefresh = currentTime - lastRefreshTime;
+        
+        if (timeSinceLastRefresh >= CONFIG.MINIMUM_FRAME_DELAY) {
+            refreshScreen();
+            lastRefreshTime = currentTime;
+        }
+    }, CONFIG.STREAM_INTERVAL);
+    
+    // Adăugăm clasa pentru a arăta că stream-ul este activ
+    const screenContainer = document.getElementById('screen-container');
+    if (screenContainer) {
+        screenContainer.classList.add('stream-active');
+    }
+    
+    // Adăugăm un control pentru intervalul de reîmprospătare
+    addStreamControls();
 }
 
-// Funcție pentru oprirea stream-ului de ecran
+// Funcție pentru adăugarea controalelor de stream
+function addStreamControls() {
+    // Verificăm dacă există deja controalele
+    if (document.getElementById('stream-controls')) {
+        return;
+    }
+    
+    // Creăm containerul pentru controale
+    const controlsContainer = document.createElement('div');
+    controlsContainer.id = 'stream-controls';
+    controlsContainer.className = 'stream-controls';
+    
+    // Adăugăm un slider pentru ajustarea vitezei
+    const speedControl = document.createElement('div');
+    speedControl.className = 'speed-control';
+    speedControl.innerHTML = `
+        <label for="stream-speed">Viteză stream: <span id="speed-value">${CONFIG.STREAM_INTERVAL}ms</span></label>
+        <input type="range" id="stream-speed" min="200" max="2000" step="100" value="${CONFIG.STREAM_INTERVAL}">
+    `;
+    
+    // Adăugăm un checkbox pentru activarea preîncărcării
+    const preloadControl = document.createElement('div');
+    preloadControl.className = 'preload-control';
+    preloadControl.innerHTML = `
+        <label for="preload-images">
+            <input type="checkbox" id="preload-images" ${CONFIG.PRELOAD_IMAGES ? 'checked' : ''}>
+            Preîncărcare imagini (recomandat)
+        </label>
+    `;
+    
+    // Adăugăm controalele în container
+    controlsContainer.appendChild(speedControl);
+    controlsContainer.appendChild(preloadControl);
+    
+    // Adăugăm containerul în DOM
+    const screenControls = document.querySelector('.screen-controls');
+    if (screenControls) {
+        screenControls.appendChild(controlsContainer);
+        
+        // Adăugăm event listener pentru slider
+        document.getElementById('stream-speed').addEventListener('input', function() {
+            const newValue = parseInt(this.value);
+            CONFIG.STREAM_INTERVAL = newValue;
+            document.getElementById('speed-value').textContent = `${newValue}ms`;
+            
+            // Restartăm intervalul cu noua viteză
+            if (isStreamActive) {
+                clearInterval(streamInterval);
+                let lastRefreshTime = Date.now();
+                
+                streamInterval = setInterval(() => {
+                    const currentTime = Date.now();
+                    const timeSinceLastRefresh = currentTime - lastRefreshTime;
+                    
+                    if (timeSinceLastRefresh >= CONFIG.MINIMUM_FRAME_DELAY) {
+                        refreshScreen();
+                        lastRefreshTime = currentTime;
+                    }
+                }, CONFIG.STREAM_INTERVAL);
+            }
+        });
+        
+        // Adăugăm event listener pentru checkbox
+        document.getElementById('preload-images').addEventListener('change', function() {
+            CONFIG.PRELOAD_IMAGES = this.checked;
+        });
+    }
+}
+
+// Funcție pentru oprirea stream-ului de capturi de ecran - îmbunătățită
 function stopScreenStream() {
+    // Verificăm dacă stream-ul este activ
     if (!isStreamActive) return;
     
-    // Ascundem butonul de oprire și afișăm butonul de pornire
+    // Marcăm stream-ul ca inactiv
+    isStreamActive = false;
+    
+    // Oprim intervalul
+    clearInterval(streamInterval);
+    
+    // Actualizăm UI-ul
     elements.stopStreamBtn.classList.add('hidden');
     elements.startStreamBtn.classList.remove('hidden');
     
-    // Setăm flag-ul de stream inactiv
-    isStreamActive = false;
+    // Eliminăm controalele de stream
+    const streamControls = document.getElementById('stream-controls');
+    if (streamControls) {
+        streamControls.remove();
+    }
     
-    // Oprim intervalul de reîmprospătare
-    clearInterval(streamInterval);
-    
-    // Afișăm un mesaj în terminal
-    appendToTerminal("Stream live oprit", 'info');
+    // Eliminăm clasa pentru a arăta că stream-ul este inactiv
+    const screenContainer = document.getElementById('screen-container');
+    if (screenContainer) {
+        screenContainer.classList.remove('stream-active');
+    }
 }
 
 // Funcție pentru executarea unei comenzi
